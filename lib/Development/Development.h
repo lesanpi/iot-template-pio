@@ -3,9 +3,6 @@
 
 #include <Arduino.h>
 
-// namespace Development
-// {
 void log(String text, String name);
-// }
 
 #endif

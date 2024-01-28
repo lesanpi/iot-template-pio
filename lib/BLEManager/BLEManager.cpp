@@ -40,10 +40,8 @@ void BLEManager::begin()
     BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();
     pAdvertising->addServiceUUID(this->serviceUUID);
     pAdvertising->setScanResponse(true);
-    // functions that help with iPhone connections issue
     pAdvertising->setMinPreferred(0x06);
     pAdvertising->setMinPreferred(0x12);
-    // ... (other advertising settings)
     BLEDevice::startAdvertising();
 }
 
