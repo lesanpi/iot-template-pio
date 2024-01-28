@@ -25,7 +25,7 @@ BLEManager::BLEManager(std::__cxx11::string deviceName, const char *serviceUUID,
     pService = pServer->createService(this->serviceUUID);
 
     // Create and add characteristic
-    pService->createCharacteristic(this->characteristicUUID, BLECharacteristic::PROPERTY_READ);
+    characteristic = pService->createCharacteristic(this->characteristicUUID, BLECharacteristic::PROPERTY_READ);
 }
 
 void BLEManager::begin()
@@ -39,6 +39,10 @@ void BLEManager::begin()
     // Start advertising
     BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();
     pAdvertising->addServiceUUID(this->serviceUUID);
+    pAdvertising->setScanResponse(true);
+    // functions that help with iPhone connections issue
+    pAdvertising->setMinPreferred(0x06);
+    pAdvertising->setMinPreferred(0x12);
     // ... (other advertising settings)
     BLEDevice::startAdvertising();
 }
