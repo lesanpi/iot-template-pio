@@ -58,3 +58,8 @@ void BLEManager::updateKilometers(int kilometers)
     kilometersCharacteristic->setValue(kilometers);
     kilometersCharacteristic->notify();
 }
+void BLEManager::updateVehicleId(String id)
+{
+    vehicleCharacteristic->setValue(id.c_str());
+    vehicleCharacteristic->notify();
+}

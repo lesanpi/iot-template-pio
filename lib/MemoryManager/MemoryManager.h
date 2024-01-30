@@ -22,7 +22,8 @@ private:
 
     int getAddrOfVehicle()
     {
-        return sizeof(this->distanceTraveled);
+        // return sizeof(this->distanceTraveled);
+        return EEPROM_ADDR_VEHICLE_ID;
     }
 };
 

@@ -1,12 +1,14 @@
 #include "ConfigurationUseCase.h"
 #include "Development.h"
 
-ConfigurationUseCase::ConfigurationUseCase(MemoryManager *memoryManager, GPSManager *gpsManager, BLEManager *bleManager, InputManager *inputManager)
+#include "InputManager.h"
+ConfigurationUseCase::ConfigurationUseCase(MemoryManager *memoryManager, GPSManager *gpsManager, BLEManager *bleManager, InputManager *inputManager, OutputManager *outputManager)
 {
     this->memoryManager = memoryManager;
     this->gpsManager = gpsManager;
     this->bleManager = bleManager;
     this->inputManager = inputManager;
+    this->outputManager = outputManager;
 }
 
 bool ConfigurationUseCase::isConfigured()
@@ -23,6 +25,15 @@ void ConfigurationUseCase::begin()
     /// Verify if device is already configured
     bool alreadyConfigured = this->isConfigured();
     log("Device is already configured: " + String(alreadyConfigured), "ConfigurationUseCase.begin()");
+
+    if (alreadyConfigured)
+    {
+        this->outputManager->setState(DeviceState::Running);
+    }
+    else
+    {
+        this->outputManager->setState(DeviceState::NotConfigured);
+    }
 
     /// Set bluetooth callback
     bleManager->setVehicleCharacteristicCallback(this);
@@ -42,7 +53,10 @@ void ConfigurationUseCase::loop()
         gpsManager->restartDistanceTraveled();
         /// Update characteristic data
         bleManager->updateKilometers(0);
+        bleManager->updateVehicleId("");
         /// Restart reset button
         inputManager->restarted();
+        /// Change output state
+        this->outputManager->setState(DeviceState::NotConfigured);
     }
 }

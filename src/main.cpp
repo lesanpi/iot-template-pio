@@ -4,6 +4,7 @@
 #include "BLEManager.h"
 #include "MemoryManager.h"
 #include "InputManager.h"
+#include "OutputManager.h"
 #include "ConfigurationUseCase.h"
 
 /// TIMES
@@ -11,6 +12,9 @@
 
 /// PINOUT
 #define RESET_BUTTON_PIN 34
+#define RED_PIN 25
+#define GREEN_PIN 26
+#define BLUE_PIN 27
 
 /// BLE UUIDS
 /// @brief  Characteristic UUID
@@ -25,6 +29,8 @@ BLEManager *bleManager;
 GPSManager *gpsManager;
 MemoryManager *memoryManager;
 InputManager *inputManager;
+OutputManager *outputManager;
+
 /// Use cases
 ConfigurationUseCase *configurationUseCase;
 
@@ -46,14 +52,16 @@ void setup()
   bleManager = new BLEManager("DEMO Lesanpi", SERVICE_UUID, KILOMETERS_CHARACTERISTIC_UUID, VEHICLE_CHARACTERISTIC_UUID);
   gpsManager = new GPSManager(4, 3, true);
   memoryManager = new MemoryManager(1024);
+  outputManager = new OutputManager(RED_PIN, GREEN_PIN, BLUE_PIN);
   /// Use cases
-  configurationUseCase = new ConfigurationUseCase(memoryManager, gpsManager, bleManager, inputManager);
+  configurationUseCase = new ConfigurationUseCase(memoryManager, gpsManager, bleManager, inputManager, outputManager);
 
   /// Begin managers
   inputManager->setup();
   memoryManager->begin();
   bleManager->begin();
   gpsManager->begin();
+  outputManager->setup();
 
   /// Begin use cases
   configurationUseCase->begin();
@@ -61,7 +69,7 @@ void setup()
 
 void loop()
 {
-  // ...
+
   configurationUseCase->loop();
 
   // kilometers++;

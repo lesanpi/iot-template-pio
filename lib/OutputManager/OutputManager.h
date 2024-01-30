@@ -7,7 +7,7 @@
 class OutputManager
 {
 public:
-    OutputManager(int redPin, int greenPin, int bluePin) : greenPin(redPin), redPin(greenPin), bluePin(bluePin){};
+    OutputManager(int redPin, int greenPin, int bluePin) : redPin(redPin), greenPin(greenPin), bluePin(bluePin){};
 
     void setup();
 

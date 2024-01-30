@@ -5,11 +5,12 @@
 #include "MemoryManager.h"
 #include "BLEManager.h"
 #include "InputManager.h"
+#include "OutputManager.h"
 
 class ConfigurationUseCase : public BLECharacteristicCallbacks
 {
 public:
-    ConfigurationUseCase(MemoryManager *memoryManager, GPSManager *gpsManager, BLEManager *bleManager, InputManager *inputManager);
+    ConfigurationUseCase(MemoryManager *memoryManager, GPSManager *gpsManager, BLEManager *bleManager, InputManager *inputManager, OutputManager *outputManager);
     void begin();
     void loop();
     bool isConfigured();
@@ -23,6 +24,16 @@ public:
         log("🚗 Restarted distanceTraveled to 0...", "ConfigurationUseCase.onWrite()");
         gpsManager->restartDistanceTraveled();
         bleManager->updateKilometers(0);
+
+        /// Restart to factory configuration
+        if (String(id.c_str()).isEmpty())
+        {
+            this->outputManager->setState(DeviceState::NotConfigured);
+        }
+        else
+        {
+            this->outputManager->setState(DeviceState::Running);
+        }
     }
 
 private:
@@ -30,6 +41,7 @@ private:
     GPSManager *gpsManager;
     BLEManager *bleManager;
     InputManager *inputManager;
+    OutputManager *outputManager;
 
     bool configured = false;
 };

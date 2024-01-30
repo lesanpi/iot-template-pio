@@ -13,12 +13,9 @@ void OutputManager::updateLEDs()
     {
     case DeviceState::NotConfigured:
         // LED pattern for NotConfigured state (e.g., blink both LEDs together)
-        digitalWrite(greenPin, HIGH);
-        delay(100);
-        digitalWrite(greenPin, LOW);
         digitalWrite(redPin, HIGH);
-        delay(100);
-        digitalWrite(redPin, LOW);
+        digitalWrite(greenPin, LOW);
+        digitalWrite(bluePin, LOW);
         break;
     case DeviceState::Running:
         // LED pattern for Running state (e.g., steady green LED)
@@ -28,10 +25,9 @@ void OutputManager::updateLEDs()
         break;
     case DeviceState::Updating:
         // LED pattern for Updating state (e.g., fast blinking blue LED)
-        digitalWrite(greenPin, HIGH);
-        delay(50);
+        digitalWrite(redPin, LOW);
         digitalWrite(greenPin, LOW);
-        delay(50);
+        digitalWrite(bluePin, HIGH);
         break;
     }
 }
