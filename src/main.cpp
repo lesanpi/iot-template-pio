@@ -1,5 +1,6 @@
 #include "GPSManager.h"
 #include "BLEManager.h"
+#include "MemoryManager.h"
 #include <Arduino.h>
 #include "Development.h"
 
@@ -10,6 +11,7 @@ const char *SERVICE_UUID = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
 
 BLEManager *bleManager;
 GPSManager *gpsManager;
+MemoryManager *memoryManager;
 
 int kilometers = 0;
 
@@ -24,6 +26,8 @@ void setup()
 
   bleManager = new BLEManager("DEMO Lesanpi", SERVICE_UUID, CHARACTERISTIC_UUID);
   gpsManager = new GPSManager(4, 3, true);
+  memoryManager = new MemoryManager(1024);
+  memoryManager->begin();
   bleManager->begin();
   gpsManager->begin();
 }
