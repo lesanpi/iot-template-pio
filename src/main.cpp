@@ -6,6 +6,7 @@
 #include "InputManager.h"
 #include "OutputManager.h"
 #include "ConfigurationUseCase.h"
+#include "MileageMeterUseCase.h"
 
 /// TIMES
 #define RESET_TIME_MAX 5000
@@ -30,6 +31,7 @@ GPSManager *gpsManager;
 MemoryManager *memoryManager;
 InputManager *inputManager;
 OutputManager *outputManager;
+MileageMeterUseCase *mileageMeterUseCase;
 
 /// Use cases
 ConfigurationUseCase *configurationUseCase;
@@ -55,6 +57,7 @@ void setup()
   outputManager = new OutputManager(RED_PIN, GREEN_PIN, BLUE_PIN);
   /// Use cases
   configurationUseCase = new ConfigurationUseCase(memoryManager, gpsManager, bleManager, inputManager, outputManager);
+  mileageMeterUseCase = new MileageMeterUseCase(memoryManager, gpsManager, bleManager, inputManager, outputManager);
 
   /// Begin managers
   inputManager->setup();
@@ -71,6 +74,7 @@ void loop()
 {
 
   configurationUseCase->loop();
+  mileageMeterUseCase->loop();
 
   // kilometers++;
   // log("🔄 Kilometers changed... " + String(kilometers) + " km", "LOOP");

@@ -13,6 +13,11 @@ public:
     String readVehicleID();
     String getVehicleId();
     double getTotalDistanceTraveled();
+    bool isConfigured()
+    {
+        String vehicle = getVehicleId();
+        return !vehicle.isEmpty();
+    }
 
 private:
     const int EEPROM_ADDR_DISTANCE = 0;

@@ -82,14 +82,14 @@ void GPSManager::calculate()
             return;
         }
 
-        double distanceBetween = TinyGPSPlus::distanceBetween(this->lastLatitud, this->lastLongitud, lat, lon);
-        log("🚗 Distance between: " + String(distanceBetween, 8), "GPSManager.calculate()");
+        double distanceBetweenMeters = TinyGPSPlus::distanceBetween(this->lastLatitud, this->lastLongitud, lat, lon);
+        log("🚗 Distance between: " + String(distanceBetweenMeters, 8), "GPSManager.calculate()");
         // Save the coordinates of the distance is significantly
-        if (distanceBetween >= 10)
+        if (distanceBetweenMeters >= 10)
         {
             this->lastLatitud = lat;
             this->lastLongitud = lon;
-            this->distanceTraveled = this->distanceTraveled + distanceBetween;
+            this->distanceTraveled = this->distanceTraveled + (distanceBetweenMeters / 1000);
             this->updated = true;
             log("✅ Coordinates saved: " + String(lat, 6) + ", " + String(lon, 6), "GPSManager.calculate()");
         }
