@@ -87,10 +87,10 @@ void GPSManager::logGPS()
 {
     if (gps.location.isValid())
     {
-        log("Location: " + String(gps.location.lat(), 8) + "," + String(gps.location.lng(), 8), "GPSManager.logGPS()");
+        log("🗺️ Location: " + String(gps.location.lat(), 8) + "," + String(gps.location.lng(), 8), "GPSManager.logGPS()");
     }
     else
     {
-        log("Invalid location", "GPSManager.logGPS()");
+        log("❌ Invalid location", "GPSManager.logGPS()");
     }
 }
