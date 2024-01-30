@@ -8,11 +8,11 @@ class InputManager
 public:
     InputManager(int resetButtonPin, int resetTimeMax);
     void setup();
+    void loop();
     bool mustRestartDevice();
     void restarted();
 
 private:
-    void loop();
     int resetButtonPin;
     int resetTimeMax;
     int resetButtonState = LOW;
