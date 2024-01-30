@@ -47,7 +47,7 @@ void setup()
   gpsManager = new GPSManager(4, 3, true);
   memoryManager = new MemoryManager(1024);
   /// Use cases
-  configurationUseCase = new ConfigurationUseCase(memoryManager, gpsManager, bleManager);
+  configurationUseCase = new ConfigurationUseCase(memoryManager, gpsManager, bleManager, inputManager);
 
   /// Begin managers
   inputManager->setup();
@@ -62,7 +62,8 @@ void setup()
 void loop()
 {
   // ...
-  inputManager->loop();
+  configurationUseCase->loop();
+
   // kilometers++;
   // log("🔄 Kilometers changed... " + String(kilometers) + " km", "LOOP");
   // bleManager->updateKilometers(kilometers);

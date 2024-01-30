@@ -45,6 +45,6 @@ bool InputManager::mustRestartDevice()
 void InputManager::restarted()
 {
     this->resetButtonState = LOW;
-    this->initialResetTime = 0;
+    this->initialResetTime = millis();
     this->mustRestart = false;
 }
