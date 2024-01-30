@@ -4,20 +4,24 @@
 #include <BLEDevice.h>
 #include <BLEUtils.h>
 #include <BLEServer.h>
-
+#include <Arduino.h>
 class BLEManager
 {
 public:
-    BLEManager(std::__cxx11::string deviceName, const char *serviceUUID, const char *characteristicUUID);
+    BLEManager(std::__cxx11::string deviceName, const char *serviceUUID, const char *kilometersUUID, const char *vehicleUUID);
     void begin();
     void updateKilometers(int kilometers);
+    void updateVehicleId(String vehicleId);
+    void setVehicleCharacteristicCallback(BLECharacteristicCallbacks *pCallbacks);
 
 private:
     const char *serviceUUID;
-    const char *characteristicUUID;
+    const char *kilometersCharacteristicUUID;
+    const char *vehicleCharacteristicUUID;
     BLEServer *pServer;
     BLEService *pService;
-    BLECharacteristic *characteristic;
+    BLECharacteristic *kilometersCharacteristic;
+    BLECharacteristic *vehicleCharacteristic;
 };
 
 #endif

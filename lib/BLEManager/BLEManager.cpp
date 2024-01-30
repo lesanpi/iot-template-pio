@@ -13,10 +13,11 @@ class MyServerCallbacks : public BLEServerCallbacks
     }
 };
 
-BLEManager::BLEManager(std::__cxx11::string deviceName, const char *serviceUUID, const char *characteristicUUID)
+BLEManager::BLEManager(std::__cxx11::string deviceName, const char *serviceUUID, const char *kilometersUUID, const char *vehicleUUID)
 {
     this->serviceUUID = serviceUUID;
-    this->characteristicUUID = characteristicUUID;
+    this->kilometersCharacteristicUUID = kilometersUUID;
+    this->vehicleCharacteristicUUID = vehicleUUID;
     // Initialize BLE
     BLEDevice::init(deviceName);
 
@@ -25,7 +26,9 @@ BLEManager::BLEManager(std::__cxx11::string deviceName, const char *serviceUUID,
     pService = pServer->createService(this->serviceUUID);
 
     // Create and add characteristic
-    characteristic = pService->createCharacteristic(this->characteristicUUID, BLECharacteristic::PROPERTY_READ);
+    kilometersCharacteristic = pService->createCharacteristic(this->kilometersCharacteristicUUID, BLECharacteristic::PROPERTY_READ);
+    vehicleCharacteristic = pService->createCharacteristic(this->vehicleCharacteristicUUID, BLECharacteristic::PROPERTY_READ |
+                                                                                                BLECharacteristic::PROPERTY_WRITE);
 }
 
 void BLEManager::begin()
@@ -45,8 +48,13 @@ void BLEManager::begin()
     BLEDevice::startAdvertising();
 }
 
+void BLEManager::setVehicleCharacteristicCallback(BLECharacteristicCallbacks *pCallbacks)
+{
+    vehicleCharacteristic->setCallbacks(pCallbacks);
+}
+
 void BLEManager::updateKilometers(int kilometers)
 {
-    characteristic->setValue(kilometers);
-    characteristic->notify();
+    kilometersCharacteristic->setValue(kilometers);
+    kilometersCharacteristic->notify();
 }

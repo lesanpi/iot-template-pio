@@ -10,18 +10,23 @@ public:
     void begin();
     void loop();
     void logGPS();
-    double getDistanceTraveledFromLastUpdate();
+    void restartDistanceTraveled();
+    double getDistanceTraveled();
+    bool isUpdated();
     static const uint32_t GPSBaud = 9600;
 
 private:
+    void calculate();
+
     HardwareSerial *ss;
     bool useMock;
     bool initialized;
     double lastLatitud;
     double lastLongitud;
+    double distanceTraveled = 0;
     int8_t rxPin;
     int8_t txPin;
-    void calculate();
+    bool updated = false;
     // The TinyGPS++ object
     TinyGPSPlus gps;
 };

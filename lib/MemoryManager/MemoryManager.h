@@ -11,6 +11,7 @@ public:
     double readDistance();
     void writeVehicleID(String vehicleID);
     String readVehicleID();
+    String getVehicleId();
 
 private:
     const int EEPROM_ADDR_DISTANCE = 0;
@@ -18,6 +19,11 @@ private:
     String vehicleId = "";
     double distanceTraveled = 0;
     size_t size;
+
+    int getAddrOfVehicle()
+    {
+        return sizeof(this->distanceTraveled);
+    }
 };
 
 #endif

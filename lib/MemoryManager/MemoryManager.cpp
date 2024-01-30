@@ -32,6 +32,7 @@ void MemoryManager::writeDistance(double distance)
 {
     // Write the distance to the memory EEPROM
     EEPROM.writeDouble(EEPROM_ADDR_DISTANCE, distance);
+    EEPROM.commit();
     this->distanceTraveled = distance;
 }
 
@@ -44,12 +45,27 @@ double MemoryManager::readDistance()
 void MemoryManager::writeVehicleID(String vehicleID)
 {
     /// Write the vehicle id to the memory EEPROM
-    EEPROM.writeString(EEPROM_ADDR_VEHICLE_ID, vehicleID);
+    EEPROM.writeString(getAddrOfVehicle(), vehicleID);
+    EEPROM.commit();
+
     this->vehicleId = vehicleID;
+    log("⚡️🚗 New vehicle id saved to storage... " + vehicleID, "MemoryManager.writeVehicleID()");
+
+    /// Restart to initial state
+    if (vehicleID.isEmpty() || this->vehicleId != vehicleID)
+    {
+        writeDistance(0);
+        log("🔄 Restarting memory to initial state... " + vehicleID, "MemoryManager.writeVehicleID()");
+    }
 }
 
 String MemoryManager::readVehicleID()
 {
     /// Read the vehicle id from the memory EEPROM
-    return EEPROM.readString(EEPROM_ADDR_VEHICLE_ID);
+    return EEPROM.readString(getAddrOfVehicle());
+}
+
+String MemoryManager::getVehicleId()
+{
+    return this->vehicleId;
 }

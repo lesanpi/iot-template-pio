@@ -56,6 +56,17 @@ void GPSManager::begin()
     log(TinyGPSPlus::libraryVersion(), "GPSManager.begin()");
 }
 
+void GPSManager::restartDistanceTraveled()
+{
+    this->distanceTraveled = 0;
+    this->updated = false;
+}
+
+double GPSManager::getDistanceTraveled()
+{
+    return this->distanceTraveled;
+}
+
 void GPSManager::calculate()
 {
     if (gps.location.isValid())
@@ -78,9 +89,16 @@ void GPSManager::calculate()
         {
             this->lastLatitud = lat;
             this->lastLongitud = lon;
+            this->distanceTraveled = this->distanceTraveled + distanceBetween;
+            this->updated = true;
             log("✅ Coordinates saved: " + String(lat, 6) + ", " + String(lon, 6), "GPSManager.calculate()");
         }
     }
+}
+
+bool GPSManager::isUpdated()
+{
+    return this->updated;
 }
 
 void GPSManager::logGPS()
