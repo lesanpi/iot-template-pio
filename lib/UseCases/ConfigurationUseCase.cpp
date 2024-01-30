@@ -37,6 +37,8 @@ void ConfigurationUseCase::begin()
 
     /// Set bluetooth callback
     bleManager->setVehicleCharacteristicCallback(this);
+    bleManager->updateVehicleId(memoryManager->getVehicleId());
+    bleManager->updateKilometers(memoryManager->getTotalDistanceTraveled());
     log("Vehicle characteristic callback setted", "ConfigurationUseCase.begin()");
 }
 

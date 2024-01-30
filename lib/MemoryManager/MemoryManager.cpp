@@ -26,6 +26,15 @@ void MemoryManager::begin()
     {
         this->distanceTraveled = distanceRead;
     }
+    {
+        this->distanceTraveled = 0;
+        writeDistance(0);
+    }
+}
+
+double MemoryManager::getTotalDistanceTraveled()
+{
+    return this->distanceTraveled;
 }
 
 void MemoryManager::writeDistance(double distance)

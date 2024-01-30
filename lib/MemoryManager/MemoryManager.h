@@ -12,6 +12,7 @@ public:
     void writeVehicleID(String vehicleID);
     String readVehicleID();
     String getVehicleId();
+    double getTotalDistanceTraveled();
 
 private:
     const int EEPROM_ADDR_DISTANCE = 0;
