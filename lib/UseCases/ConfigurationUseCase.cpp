@@ -34,18 +34,15 @@ void ConfigurationUseCase::loop()
     inputManager->loop();
     if (inputManager->mustRestartDevice())
     {
-
-        log("🚨 Restarting memory data to default", "ConfigurationUseCase.mustRestartDevice()");
+        log("🚨 Restarting to factory configuration", "ConfigurationUseCase.mustRestartDevice()");
+        /// Clean memory
         memoryManager->writeVehicleID("");
         memoryManager->writeDistance(0);
-
-        log("🚨 Restarting gps distance traveled counter", "ConfigurationUseCase.mustRestartDevice()");
+        /// Restart distance traveled counter
         gpsManager->restartDistanceTraveled();
-
-        log("🚨 Updating BLE kilometers characteristic", "ConfigurationUseCase.mustRestartDevice()");
+        /// Update characteristic data
         bleManager->updateKilometers(0);
-
-        log("🚨✅ Restart to default configuration finished", "ConfigurationUseCase.mustRestartDevice()");
+        /// Restart reset button
         inputManager->restarted();
     }
 }
