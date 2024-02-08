@@ -1,3 +1,33 @@
+# Managers 
+
+Los "Managers" en la arquitectura son clases que encapsulan la lógica de negocio y la interacción con dispositivos específicos o recursos del sistema. Cada "Manager" se encarga de una funcionalidad específica, proporcionando una interfaz sencilla para el resto del sistema.
+
+## Beneficios:
+
+* Modularidad: Permiten dividir el código en módulos independientes, mejorando la organización y legibilidad.
+* Reutilización: Los "Managers" pueden ser reutilizados en diferentes proyectos o componentes del sistema.
+* Encapsulamiento: Ocultan la complejidad interna de la interacción con dispositivos o recursos, simplificando el código.
+* Mantenimiento: Facilitan la detección y corrección de errores al tener una responsabilidad acotada.
+
+## Managers en tu código:
+
+* OutputManager: Controla 3 LEDs, actualizando su estado según el estado del dispositivo.
+* MemoryManager: Gestiona la memoria persistente (EEPROM) para almacenar y recuperar información clave como la distancia total recorrida e identificador del vehículo.
+* InputManager: Detecta pulsaciones largas en un botón de reinicio, notificando al sistema la necesidad de reiniciar.
+* GPSManager: Se encarga de la comunicación con el módulo GPS, calculando la distancia recorrida y gestionando actualizaciones de posición.
+* BLEManager: Establece un servicio BLE, transmitiendo los kilómetros recorridos y el identificador del vehículo, permitiendo la comunicación con dispositivos externos.
+
+## Interacción entre Managers:
+
+Los "`Managers`" pueden interactuar entre sí para compartir información o realizar tareas conjuntas.
+
+### Ejemplo:
+
+El `GPSManager` puede notificar al `MemoryManager` la distancia recorrida para actualizar la información almacenada.
+El `OutputManager` puede mostrar diferentes patrones de iluminación en los LEDs según el estado del dispositivo, información proporcionada por el `DeviceState`.
+
+Para poder interactuar entre ello utilizamos los `UseCases`
+
 # Use Cases / Casos de Uso
 
 ## ¿Qué son?
