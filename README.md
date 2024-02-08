@@ -32,7 +32,7 @@ Para poder interactuar entre ello utilizamos los `UseCases`
 
 ## ¿Qué son?
 
-Los casos de uso son descripciones de cómo los usuarios interactúan con el software para lograr objetivos específicos. Son una herramienta esencial para comprender las necesidades del usuario y para asegurar que el software se desarrolle de manera que las satisfaga.
+Los casos de uso son descripciones de cómo los usuarios interactúan con el dispositivo para lograr objetivos específicos. Son una herramienta esencial para comprender las necesidades del usuario y para asegurar que el software se desarrolle de manera que las satisfaga.
 
 ## ¿Por qué son importantes?
 
