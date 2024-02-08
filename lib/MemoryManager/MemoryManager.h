@@ -11,6 +11,7 @@ public:
     double readDistance();
     void writeVehicleID(String vehicleID);
     String readVehicleID();
+
     String getVehicleId();
     double getTotalDistanceTraveled();
     bool isConfigured()
