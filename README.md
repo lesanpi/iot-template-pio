@@ -1,3 +1,22 @@
+# Arquitectura de Desarrollo.
+
+Esta arquitectura se basa en una estructura modular con diferentes capas y componentes que interactúan entre sí. Esta estructura permite dividir la funcionalidad del sistema en partes más pequeñas y manejables, mejorando la organización, legibilidad y mantenibilidad del código y del hardware.
+
+## Componentes principales:
+
+* Managers: Clases que encapsulan la lógica de negocio y la interacción con dispositivos específicos o recursos del sistema. Cada "Manager" se encarga de una funcionalidad específica, proporcionando una interfaz sencilla para el resto del sistema.
+* Use Cases: Casos de uso que definen las diferentes funcionalidades que el sistema puede ofrecer a los usuarios. Cada caso de uso describe una secuencia de pasos que se deben seguir para completar una tarea específica.
+* Capa de Interfaz: Se encarga de la interacción con el usuario, mostrando información y recibiendo comandos a través de interfaces físicas como LEDs, botones, pantallas, etc. Realmente esta es la capa que menos control tenemos ya que son componentes electrónicos y/o circuitos.
+
+## Ventajas:
+
+* Modularidad: Facilita la organización y el mantenimiento del código y del hardware al dividirlo en módulos independientes.
+* Reutilización: Los "Managers" y casos de uso pueden ser reutilizados en diferentes proyectos o componentes del sistema.
+* Encapsulamiento: Oculta la complejidad interna de los "Managers" y casos de uso, simplificando el código.
+* Escalabilidad: Permite añadir nuevas funcionalidades de forma sencilla al crear nuevos "Managers" y casos de uso.
+* Testabilidad: Facilita la creación de pruebas unitarias para cada "Manager" y caso de uso.
+
+
 # Managers 
 
 Los "Managers" en la arquitectura son clases que encapsulan la lógica de negocio y la interacción con dispositivos específicos o recursos del sistema. Cada "Manager" se encarga de una funcionalidad específica, proporcionando una interfaz sencilla para el resto del sistema.
@@ -136,6 +155,8 @@ Básicamente se refleja en la NO ejecutación de funcionalides. Aquí un ejemplo
     }
 
 ```
+
+En este caso de ejemplo, el equipo no continua midiendo la distancia recorrida a través del módulo GPS, ya que no se encuentra configurado.
 
 
 
