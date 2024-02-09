@@ -32,7 +32,7 @@ Para poder interactuar entre ello utilizamos los `UseCases`
 
 ## ¿Qué son?
 
-Los casos de uso son descripciones de cómo los usuarios interactúan con el dispositivo para lograr objetivos específicos. Son una herramienta esencial para comprender las necesidades del usuario y para asegurar que el software se desarrolle de manera que las satisfaga.
+Los casos de uso son descripciones de cómo los usuarios interactúan con el dispositivo para lograr objetivos específicos. Son una herramienta esencial para comprender las necesidades del usuario y para asegurar que el dispositivo se desarrolle de manera que las satisfaga y ejecute todas las acciones que involucran ese objetivo.
 
 ## ¿Por qué son importantes?
 
@@ -90,3 +90,52 @@ En este caso cuando el `InputManager` detecte que el botón de reset fue presion
 * Se debe encender la luz que indique que el dispositivo no esta configurado a través del `OutputManager`
 * Se debe actualizar la información que se transmite vía Bluetooth LE, a través del `BLEManager`.
 * Se debe indicar al `InputManager` que la acción de reseteo ya se ejecuto, por lo que reiniciara el flag que indica que se presiono el botón de reset.
+
+
+# Glosario
+
+## Modo configuración
+
+El modo configuración es un estado en el que definí como "En espera a ser configurado por el usuario", básicamente el dispositivo espera todos los datos iniciales para poder empezar a funcionar.
+
+En el archivo `DeviceState.h`, definí los siguientes estados:
+
+```cpp
+enum class DeviceState
+{
+    NotConfigured,
+    Running,
+    Updating
+};
+```
+
+#### ¿En que refleja esto en el código?
+Básicamente se refleja en la NO ejecutación de funcionalides. Aquí un ejemplo en donde en el caso de uso se válida si está configurado el equipo.
+
+```cpp
+    bool isConfigured = memoryManager->isConfigured();
+    if (isConfigured)
+        gpsManager->loop();
+    if (gpsManager->isUpdated() && isConfigured)
+    {
+        /// GPS Distance traveled counter
+        double distanceTraveledUpdated = gpsManager->getDistanceTraveled();
+        log("🚗 Distance traveled... " + String(distanceTraveledUpdated) + " km", "MileageMeterUseCase.loop()");
+
+        /// Memory distance traveled
+        double currentTotalDistanceTraveled = memoryManager->getTotalDistanceTraveled();
+        double totalDistanceTraveledUpdated = currentTotalDistanceTraveled + distanceTraveledUpdated;
+        log("🛣️ Total distance traveled... " + String(totalDistanceTraveledUpdated) + " km", "MileageMeterUseCase.loop()");
+
+        /// Restart GPS Manager counter
+        gpsManager->restartDistanceTraveled();
+        /// Update memory distance distanceTraveled
+        memoryManager->writeDistance(totalDistanceTraveledUpdated);
+        /// Send data via BLE
+        bleManager->updateKilometers(totalDistanceTraveledUpdated);
+    }
+
+```
+
+
+
