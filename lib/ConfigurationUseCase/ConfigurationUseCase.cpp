@@ -52,7 +52,7 @@ void ConfigurationUseCase::loop()
         memoryManager->writeVehicleID("");
         memoryManager->writeDistance(0);
         /// Restart distance traveled counter
-        gpsManager->restartDistanceTraveled();
+        gpsManager->restart();
         /// Update characteristic data
         bleManager->updateKilometers(0);
         bleManager->updateVehicleId("");

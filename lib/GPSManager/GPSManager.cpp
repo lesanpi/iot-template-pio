@@ -11,7 +11,7 @@ GPSManager::GPSManager(int8_t rxPin, int8_t txPin, bool useMock)
 
 void GPSManager::loop()
 {
-    log("Executing loop, using mock: " + String(useMock), "GPSManager.loop()");
+    // log("Executing loop, using mock: " + String(useMock), "GPSManager.loop()");
     if (useMock)
     {
         // A sample NMEA stream.
@@ -56,6 +56,13 @@ void GPSManager::begin()
     log(TinyGPSPlus::libraryVersion(), "GPSManager.begin()");
 }
 
+void GPSManager::restart()
+{
+    this->distanceTraveled = 0;
+    this->updated = false;
+    this->initialized = false;
+}
+
 void GPSManager::restartDistanceTraveled()
 {
     this->distanceTraveled = 0;
@@ -83,10 +90,10 @@ void GPSManager::calculate()
         }
 
         double distanceBetweenMeters = TinyGPSPlus::distanceBetween(this->lastLatitud, this->lastLongitud, lat, lon);
-        log("🚗 Distance between: " + String(distanceBetweenMeters, 8), "GPSManager.calculate()");
         // Save the coordinates of the distance is significantly
-        if (distanceBetweenMeters >= 10)
+        if (distanceBetweenMeters >= 20)
         {
+            log("🚗 Distance between: " + String(distanceBetweenMeters, 8), "GPSManager.calculate()");
             this->lastLatitud = lat;
             this->lastLongitud = lon;
             this->distanceTraveled = this->distanceTraveled + (distanceBetweenMeters / 1000);
@@ -105,10 +112,13 @@ void GPSManager::logGPS()
 {
     if (gps.location.isValid())
     {
-        log("🗺️ Location: " + String(gps.location.lat(), 8) + "," + String(gps.location.lng(), 8), "GPSManager.logGPS()");
+        // log("🗺️ Location: " + String(gps.location.lat(), 8) + "," + String(gps.location.lng(), 8), "GPSManager.logGPS()");
     }
     else
     {
+
         log("❌ Invalid location", "GPSManager.logGPS()");
+        String value = String(ss->read());
+        log("❌ Invalid location value: " + value, "GPSManager.logGPS()");
     }
 }

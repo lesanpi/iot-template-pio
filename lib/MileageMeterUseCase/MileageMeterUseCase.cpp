@@ -12,16 +12,19 @@ MileageMeterUseCase::MileageMeterUseCase(MemoryManager *memoryManager, GPSManage
 void MileageMeterUseCase::loop()
 {
     bool isConfigured = memoryManager->isConfigured();
+
+    /// Memory distance traveled
+    double currentTotalDistanceTraveled = memoryManager->getTotalDistanceTraveled();
+    // log("🚗🔄 Distance traveled in progress... " + String(currentTotalDistanceTraveled) + " km", "MileageMeterUseCase.loop()");
+
     if (isConfigured)
         gpsManager->loop();
     if (gpsManager->isUpdated() && isConfigured)
     {
         /// GPS Distance traveled counter
         double distanceTraveledUpdated = gpsManager->getDistanceTraveled();
-        log("🚗 Distance traveled... " + String(distanceTraveledUpdated) + " km", "MileageMeterUseCase.loop()");
+        log("🚗 Distance traveled detected... " + String(distanceTraveledUpdated) + " km", "MileageMeterUseCase.loop()");
 
-        /// Memory distance traveled
-        double currentTotalDistanceTraveled = memoryManager->getTotalDistanceTraveled();
         double totalDistanceTraveledUpdated = currentTotalDistanceTraveled + distanceTraveledUpdated;
         log("🛣️ Total distance traveled... " + String(totalDistanceTraveledUpdated) + " km", "MileageMeterUseCase.loop()");
 

@@ -22,13 +22,14 @@ public:
         memoryManager->writeVehicleID(String(id.c_str()));
 
         log("🚗 Restarted distanceTraveled to 0...", "ConfigurationUseCase.onWrite()");
-        gpsManager->restartDistanceTraveled();
+        gpsManager->restart();
         bleManager->updateKilometers(0);
 
         /// Restart to factory configuration
         if (String(id.c_str()).isEmpty())
         {
             this->outputManager->setState(DeviceState::NotConfigured);
+            this->memoryManager->writeDistance(0);
         }
         else
         {

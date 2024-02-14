@@ -11,6 +11,7 @@ public:
     void loop();
     void logGPS();
     void restartDistanceTraveled();
+    void restart();
     double getDistanceTraveled();
     bool isUpdated();
     static const uint32_t GPSBaud = 9600;
@@ -20,7 +21,7 @@ private:
 
     HardwareSerial *ss;
     bool useMock;
-    bool initialized;
+    bool initialized = false;
     double lastLatitud;
     double lastLongitud;
     double distanceTraveled = 0;
