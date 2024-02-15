@@ -12,6 +12,8 @@ GPSManager::GPSManager(int8_t rxPin, int8_t txPin, bool useMock)
 void GPSManager::loop()
 {
     // log("Executing loop, using mock: " + String(useMock), "GPSManager.loop()");
+    calculateSatellites();
+    calculateHdop();
     if (useMock)
     {
         // A sample NMEA stream.
@@ -74,8 +76,37 @@ double GPSManager::getDistanceTraveled()
     return this->distanceTraveled;
 }
 
+void GPSManager::calculateSatellites()
+{
+    int numSatellites = gps.satellites.value();
+    if (gps.satellites.isValid())
+    {
+        if (this->satellites != numSatellites)
+        {
+
+            log("🛰️ GPS satellites number: " + String(numSatellites), "GPSManager.calculateSatellites()");
+            this->satellites = numSatellites;
+        }
+    }
+}
+
+void GPSManager::calculateHdop()
+{
+    int hdopCalculated = gps.hdop.value();
+    if (gps.hdop.isValid())
+    {
+        if (this->hdop != hdopCalculated)
+        {
+
+            log("🛰️ GPS HDOP: " + String(hdopCalculated), "GPSManager.calculateHdop()");
+            this->hdop = hdopCalculated;
+        }
+    }
+}
+
 void GPSManager::calculate()
 {
+
     if (gps.location.isValid())
     {
         double lat = gps.location.lat();

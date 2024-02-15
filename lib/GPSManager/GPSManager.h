@@ -24,12 +24,17 @@ private:
     bool initialized = false;
     double lastLatitud;
     double lastLongitud;
+    int satellites = 0;
+    double hdop = 5;
     double distanceTraveled = 0;
     int8_t rxPin;
     int8_t txPin;
     bool updated = false;
     // The TinyGPS++ object
     TinyGPSPlus gps;
+
+    void calculateSatellites();
+    void calculateHdop();
 };
 
 #endif
