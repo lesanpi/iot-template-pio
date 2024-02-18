@@ -2,6 +2,7 @@
 #define GPS_MANAGER_H
 #include <TinyGPS++.h>
 #include <HardwareSerial.h>
+#include "Development.h"
 
 class GPSManager
 {
@@ -25,6 +26,8 @@ private:
     double lastLatitud;
     double lastLongitud;
     int satellites = 0;
+
+    double speedKpmh = 0;
     double hdop = 5;
     double distanceTraveled = 0;
     int8_t rxPin;
@@ -33,10 +36,30 @@ private:
     // The TinyGPS++ object
     TinyGPSPlus gps;
     /// Weights
+
+    // HDOP weight factor (between 0 and 1).
+    float hdopWeightFactor = 0.25;
+    // Satellite weight factor (between 0 and 1).
     float satelliteWeightFactor = 0.5;
+    // Maximum acceptable HDOP value.
+    float hdopThreshold = 2.5;
+    // Minimum number of satellites for a valid measurement.
+    int minimumSatellites = 5;
+
+    /// Minimum speed in Kmph to to detect movement in a vehicle
+    float minimumSpeedKmph = 20.0f;
+    float maximumSpeedKmph = 160.0f;
 
     void calculateSatellites();
     void calculateHdop();
+    void calculateSpeed();
+
+    bool isMoving()
+    {
+        /// Minimum speed to detect device is moving
+        bool isMoving = this->speedKpmh >= minimumSpeedKmph;
+        return isMoving;
+    }
 };
 
 #endif

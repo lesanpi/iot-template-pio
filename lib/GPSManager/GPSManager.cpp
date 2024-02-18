@@ -1,5 +1,4 @@
 #include "GPSManager.h"
-#include "Development.h"
 
 GPSManager::GPSManager(int8_t rxPin, int8_t txPin, bool useMock)
 {
@@ -14,6 +13,7 @@ void GPSManager::loop()
     // log("Executing loop, using mock: " + String(useMock), "GPSManager.loop()");
     calculateSatellites();
     calculateHdop();
+    calculateSpeed();
     if (useMock)
     {
         // A sample NMEA stream.
@@ -63,6 +63,8 @@ void GPSManager::restart()
     this->distanceTraveled = 0;
     this->updated = false;
     this->initialized = false;
+    this->satellites = 0;
+    this->hdop = 5;
 }
 
 void GPSManager::restartDistanceTraveled()
@@ -103,6 +105,19 @@ void GPSManager::calculateHdop()
         }
     }
 }
+void GPSManager::calculateSpeed()
+{
+    double kmphUpdated = gps.speed.kmph();
+    if (gps.speed.isValid())
+    {
+        if (this->speedKpmh != kmphUpdated)
+        {
+
+            this->speedKpmh = kmphUpdated;
+            log("🏎️ GPS Speed: " + String(kmphUpdated) + ". 👟 Is moving? " + String(isMoving() ? "✅" : "❌"), "GPSManager.calculateSpeed()");
+        }
+    }
+}
 
 void GPSManager::calculate()
 {
@@ -111,6 +126,7 @@ void GPSManager::calculate()
     {
         double lat = gps.location.lat();
         double lon = gps.location.lng();
+
         if (!this->initialized)
         {
             this->lastLatitud = lat;
@@ -120,14 +136,29 @@ void GPSManager::calculate()
             return;
         }
 
+        // Calculate the weighted distance according the last sample
         double distanceBetweenMeters = TinyGPSPlus::distanceBetween(this->lastLatitud, this->lastLongitud, lat, lon);
-        distanceBetweenMeters *= (1.0 - satelliteWeightFactor) + (satelliteWeightFactor * (this->satellites / 12.0));
-        // Return if the satellites available is lower than 5
-        if (this->satellites < 5)
+
+        /// Device is not moving
+        if (!isMoving())
             return;
 
+        /// Verify minimum conditions
+        if (this->hdop <= hdopThreshold && this->satellites >= minimumSatellites)
+        {
+            // Distance calculation with HDOP and number of satellites weighting
+            distanceBetweenMeters *= (1.0 - hdopWeightFactor - satelliteWeightFactor) +
+                                     (hdopWeightFactor * (hdopThreshold - this->hdop) / hdopThreshold) +
+                                     (satelliteWeightFactor * (this->satellites - minimumSatellites) / (12.0 - minimumSatellites));
+        }
+        else
+        {
+            // Invalid conditions
+            return;
+        }
+
         // Save the coordinates of the distance is significantly (greater than 25 meters)
-        if (distanceBetweenMeters >= 25)
+        if (distanceBetweenMeters >= 35)
         {
             log("🚗 Distance between: " + String(distanceBetweenMeters, 8), "GPSManager.calculate()");
             this->lastLatitud = lat;
@@ -152,9 +183,6 @@ void GPSManager::logGPS()
     }
     else
     {
-
         log("❌ Invalid location", "GPSManager.logGPS()");
-        String value = String(ss->read());
-        log("❌ Invalid location value: " + value, "GPSManager.logGPS()");
     }
 }

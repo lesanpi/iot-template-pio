@@ -15,7 +15,7 @@ void MemoryManager::begin()
     String vehicleIdRead = this->readVehicleID();
 
     log("Vehicle id saved: " + vehicleIdRead, "MemoryManager.begin()");
-    log("Distance saved: " + String(distanceRead), "MemoryManager.begin()");
+    log("Distance saved: " + String(distanceRead, 3), "MemoryManager.begin()");
     if (vehicleIdRead.isEmpty())
     {
         log("No vehicle configured", "MemoryManager.begin()");
@@ -43,6 +43,8 @@ void MemoryManager::writeDistance(double distance)
     EEPROM.writeDouble(EEPROM_ADDR_DISTANCE, distance);
     EEPROM.commit();
     this->distanceTraveled = distance;
+    double kilometers = readDistance();
+    log("⚡️🚗 Kilometers saved " + String(kilometers, 3), "MemoryManager.writeDistance()");
 }
 
 double MemoryManager::readDistance()
