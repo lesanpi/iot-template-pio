@@ -23,10 +23,10 @@ void MileageMeterUseCase::loop()
     {
         /// GPS Distance traveled counter
         double distanceTraveledUpdated = gpsManager->getDistanceTraveled();
-        log("🚗 Distance traveled detected... " + String(distanceTraveledUpdated) + " km", "MileageMeterUseCase.loop()");
+        log("🚗 Distance traveled detected... " + String(distanceTraveledUpdated, 6) + " km", "MileageMeterUseCase.loop()");
 
         double totalDistanceTraveledUpdated = currentTotalDistanceTraveled + distanceTraveledUpdated;
-        log("🛣️ Total distance traveled... " + String(totalDistanceTraveledUpdated) + " km", "MileageMeterUseCase.loop()");
+        log("🛣️ Total distance traveled... " + String(totalDistanceTraveledUpdated, 6) + " km", "MileageMeterUseCase.loop()");
 
         /// Restart GPS Manager counter
         gpsManager->restartDistanceTraveled();

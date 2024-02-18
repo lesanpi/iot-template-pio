@@ -32,6 +32,8 @@ private:
     bool updated = false;
     // The TinyGPS++ object
     TinyGPSPlus gps;
+    /// Weights
+    float satelliteWeightFactor = 0.5;
 
     void calculateSatellites();
     void calculateHdop();

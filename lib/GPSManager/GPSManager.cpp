@@ -92,7 +92,7 @@ void GPSManager::calculateSatellites()
 
 void GPSManager::calculateHdop()
 {
-    int hdopCalculated = gps.hdop.value();
+    int hdopCalculated = gps.hdop.hdop();
     if (gps.hdop.isValid())
     {
         if (this->hdop != hdopCalculated)
@@ -121,8 +121,13 @@ void GPSManager::calculate()
         }
 
         double distanceBetweenMeters = TinyGPSPlus::distanceBetween(this->lastLatitud, this->lastLongitud, lat, lon);
-        // Save the coordinates of the distance is significantly
-        if (distanceBetweenMeters >= 20)
+        distanceBetweenMeters *= (1.0 - satelliteWeightFactor) + (satelliteWeightFactor * (this->satellites / 12.0));
+        // Return if the satellites available is lower than 5
+        if (this->satellites < 5)
+            return;
+
+        // Save the coordinates of the distance is significantly (greater than 25 meters)
+        if (distanceBetweenMeters >= 25)
         {
             log("🚗 Distance between: " + String(distanceBetweenMeters, 8), "GPSManager.calculate()");
             this->lastLatitud = lat;
