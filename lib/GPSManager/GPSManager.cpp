@@ -127,6 +127,8 @@ void GPSManager::calculate()
         double lat = gps.location.lat();
         double lon = gps.location.lng();
 
+        /// The following code is according your project
+
         if (!this->initialized)
         {
             this->lastLatitud = lat;
