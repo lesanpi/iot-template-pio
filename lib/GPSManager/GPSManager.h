@@ -57,7 +57,7 @@ private:
     bool isMoving()
     {
         /// Minimum speed to detect device is moving
-        bool isMoving = this->speedKpmh >= minimumSpeedKmph;
+        bool isMoving = this->speedKpmh >= minimumSpeedKmph && this->speedKpmh <= maximumSpeedKmph;
         return isMoving;
     }
 };
