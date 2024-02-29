@@ -13,6 +13,19 @@ enum HttpMethod
     DELETE
 };
 
+class HttpResponse
+{
+public:
+    int statusCode;
+    String body;
+
+    HttpResponse(int code, const String &response)
+    {
+        statusCode = code;
+        body = response;
+    }
+};
+
 class RestClientManager
 {
 public:
@@ -42,11 +55,11 @@ public:
         http->addHeader(name, value);
     }
 
-    String request(String url, HttpMethod method, String data = "")
+    HttpResponse request(String url, HttpMethod method, String data = "")
     {
 
         http->begin(*client, url);
-        int httpStatusCode = 500;
+        int httpStatusCode = -1;
         switch (method)
         {
         case GET:
@@ -69,15 +82,15 @@ public:
         if (httpStatusCode > 0)
         {
             String payload = http->getString();
-            return payload.c_str();
+            http->end();
+            return HttpResponse(httpStatusCode, payload);
         }
         else
         {
             log("Error al realizar la petición: " + String(httpStatusCode), "RestClientManager.request()");
-            return "";
+            http->end();
+            return HttpResponse(500, "");
         }
-
-        http->end();
     }
 
 private:
