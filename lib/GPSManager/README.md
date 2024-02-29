@@ -3,8 +3,6 @@
 ## GPS en proyectos de IoT
 
 
-
-## Introducción
 Esta plantilla te ofrece una base sólida para integrar la funcionalidad GPS en tus proyectos de IoT. Se basa en la biblioteca TinyGPS++ para decodificar las frases NMEA de un módulo GPS conectado mediante comunicación serial.
 
 ### 1. Requisitos
@@ -51,7 +49,8 @@ Funciones Privadas
 * `calculateHdop()`: Actualiza el valor de HDOP (Dilución de Precisión Horizontal).
 * `calculateSpeed()`: Calcula la velocidad en base a los datos GPS.
 * `isMoving()`: Determina si el dispositivo está en movimiento (basado en la velocidad).
-* `### Variables`:
+
+### Variables:
 
 * `ss`: Objeto HardwareSerial para la comunicación con el módulo GPS.
 * `useMock`: Indica si se está utilizando un simulador de GPS.
