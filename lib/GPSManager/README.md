@@ -140,3 +140,12 @@ Valores típicos de HDOP:
 
 ### Número de Satélites
 Una muestra de GPS puede tomar en cuenta uno o varios satélites, por lo que una muestra puede ser más fidedigna cuando tiene más satelites.
+
+
+## Schematic Circuit
+
+El siguiente circuito representa lo que sería el modulo GPS, el cual sera necesario para cuando se requiera diseñar un esquematico completo del proyecto IoT.
+
+![Schematic](pcb/GPS-ATGM336H_schematic.png?raw=true "Schematic")
+
+[Schematic](GPS-ATGM336H_schematic.pdf)
