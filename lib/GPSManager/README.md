@@ -148,4 +148,4 @@ El siguiente circuito representa lo que sería el modulo GPS, el cual sera neces
 
 ![Schematic](pcb/GPS-ATGM336H_schematic.png?raw=true "Schematic")
 
-[Schematic](GPS-ATGM336H_schematic.pdf)
+[Schematic](pcb/GPS-ATGM336H_schematic.pdf)
