@@ -53,6 +53,7 @@ void setup()
   inputManager = new InputManager(RESET_BUTTON_PIN, RESET_TIME_MAX);
   bleManager = new BLEManager("DEMO Lesanpi", SERVICE_UUID, KILOMETERS_CHARACTERISTIC_UUID, VEHICLE_CHARACTERISTIC_UUID);
   gpsManager = new GPSManager(32, 33, false);
+  // gpsManager = new GPSManager(32, 33, true);
   memoryManager = new MemoryManager(1024);
   outputManager = new OutputManager(RED_PIN, GREEN_PIN, BLUE_PIN);
   /// Use cases

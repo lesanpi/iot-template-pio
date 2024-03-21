@@ -30,6 +30,7 @@ void GPSManager::loop()
             {
 
                 logGPS();
+                delay(1000);
                 calculate();
             }
         }

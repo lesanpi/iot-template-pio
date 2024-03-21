@@ -57,6 +57,9 @@ private:
     bool isMoving()
     {
         /// Minimum speed to detect device is moving
+        if (useMock)
+            return true;
+
         bool isMoving = this->speedKpmh >= minimumSpeedKmph && this->speedKpmh <= maximumSpeedKmph;
         return isMoving;
     }

@@ -26,7 +26,9 @@ void MemoryManager::begin()
     {
         this->distanceTraveled = distanceRead;
     }
+    else
     {
+        log("Distance is nan", "MemoryManager.begin()");
         this->distanceTraveled = 0;
         writeDistance(0);
     }
