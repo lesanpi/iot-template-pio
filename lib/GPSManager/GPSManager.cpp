@@ -38,11 +38,14 @@ void GPSManager::loop()
     }
 
     while (ss->available() > 0)
+    {
+        // Serial.print(String(ss->read()));
         if (gps.encode(ss->read()))
         {
             logGPS();
             calculate();
         }
+    }
 
     if (millis() > 5000 && gps.charsProcessed() < 10)
     {
@@ -180,6 +183,8 @@ bool GPSManager::isUpdated()
 
 void GPSManager::logGPS()
 {
+    // log("HDOP: " + String(gps.hdop.hdop()), "GPSManager.logGPS(hdop)");
+
     if (gps.location.isValid())
     {
         // log("🗺️ Location: " + String(gps.location.lat(), 8) + "," + String(gps.location.lng(), 8), "GPSManager.logGPS()");

@@ -55,6 +55,7 @@ void BLEManager::setVehicleCharacteristicCallback(BLECharacteristicCallbacks *pC
 
 void BLEManager::updateKilometers(int kilometers)
 {
+    log("kilometers: " + String(kilometers), "BLEManager.updateKilometers");
     kilometersCharacteristic->setValue(kilometers);
     kilometersCharacteristic->notify();
 }

@@ -41,6 +41,7 @@ int kilometers = 0;
 void setup()
 {
   Serial.begin(115200);
+  // Serial.begin(9600);
   while (!Serial.availableForWrite())
     ;
   delay(2000);
