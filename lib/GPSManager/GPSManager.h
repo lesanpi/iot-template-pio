@@ -3,6 +3,13 @@
 #include <TinyGPS++.h>
 #include <HardwareSerial.h>
 #include "Development.h"
+#include <ArduinoJson.h>
+
+struct GeolocationData
+{
+    float latitude;
+    float longitude;
+};
 
 class GPSManager
 {
@@ -16,6 +23,16 @@ public:
     double getDistanceTraveled();
     bool isUpdated();
     static const uint32_t GPSBaud = 9600;
+    bool isInitialized()
+    {
+        return initialized;
+    }
+    GeolocationData geolocation()
+    {
+        GeolocationData data;
+        data.latitude = lastLatitud;
+        data.longitude = lastLongitud;
+    }
 
 private:
     void calculate();

@@ -19,5 +19,26 @@ private:
     BLEManager *bleManager;
     InputManager *inputManager;
     OutputManager *outputManager;
+    /// @brief Last location known
+    GeolocationData lastLocation;
+
+    /// @brief Determinates if the geolocation was updated
+    /// @return true if the location was updated
+    bool geolocationIsUpdated()
+    {
+        if (gpsManager->isInitialized())
+        {
+            return false;
+        }
+
+        GeolocationData geolocation = gpsManager->geolocation();
+        return geolocation.latitude != lastLocation.latitude || geolocation.longitude != lastLocation.longitude;
+    }
+
+    void setGeolocation(GeolocationData data)
+    {
+        lastLocation.latitude = data.latitude;
+        lastLocation.longitude = data.longitude;
+    }
 };
 #endif

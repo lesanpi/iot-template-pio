@@ -31,6 +31,14 @@ void MileageMeterUseCase::loop()
         }
         gpsManager->loop();
     }
+    if (geolocationIsUpdated())
+    {
+        log("🚗 Geolocation was updated", "MileageMeterUseCase.loop()");
+        setGeolocation(gpsManager->geolocation());
+        /// Send data via BLE
+        bleManager->updateGeolocation(lastLocation);
+    }
+
     if (gpsManager->isUpdated() && isConfigured)
     {
         /// GPS Distance traveled counter
