@@ -29,6 +29,7 @@ public:
     }
 
     void disconnected(){
+        if (!connected) return;
         log("Disconnected from WiFI", "WiFiScannerManager.onEvent()");
         connected = false;
     }
