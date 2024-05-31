@@ -7,6 +7,7 @@
 #include "OutputManager.h"
 #include "ConfigurationUseCase.h"
 #include "MileageMeterUseCase.h"
+#include "WifiScannerManager.h"
 
 /// TIMES
 #define RESET_TIME_MAX 5000
@@ -33,12 +34,19 @@ GPSManager *gpsManager;
 MemoryManager *memoryManager;
 InputManager *inputManager;
 OutputManager *outputManager;
+WiFiScannerManager *wifiScannerManager;
 MileageMeterUseCase *mileageMeterUseCase;
 
 /// Use cases
 ConfigurationUseCase *configurationUseCase;
 
 int kilometers = 0;
+
+void WiFiGotIP(WiFiEvent_t event)
+{
+  Serial.println("WiFi connected");
+  Serial.println("IP address: ");
+}
 
 void setup()
 {
@@ -62,13 +70,17 @@ void setup()
   /// Use cases
   configurationUseCase = new ConfigurationUseCase(memoryManager, gpsManager, bleManager, inputManager, outputManager);
   mileageMeterUseCase = new MileageMeterUseCase(memoryManager, gpsManager, bleManager, inputManager, outputManager);
-
+  wifiScannerManager = new WiFiScannerManager("WiFi_OBDII", -50);
   /// Begin managers
   inputManager->setup();
   memoryManager->begin();
   bleManager->begin();
   gpsManager->begin();
   outputManager->setup();
+  wifiScannerManager->begin();
+
+  WiFi.onEvent([](WiFiEvent_t event)
+               { wifiScannerManager->disconnected(); }, WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
 
   /// Begin use cases
   configurationUseCase->begin();
@@ -79,6 +91,7 @@ void loop()
 
   configurationUseCase->loop();
   mileageMeterUseCase->loop();
+  wifiScannerManager->loop();
 
   // kilometers++;
   // log("🔄 Kilometers changed... " + String(kilometers) + " km", "LOOP");

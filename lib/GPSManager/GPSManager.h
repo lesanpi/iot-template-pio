@@ -32,6 +32,7 @@ public:
         GeolocationData data;
         data.latitude = lastLatitud;
         data.longitude = lastLongitud;
+        return data;
     }
 
 private:

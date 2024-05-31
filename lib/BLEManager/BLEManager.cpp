@@ -69,7 +69,7 @@ void BLEManager::updateVehicleId(String id)
 void BLEManager::updateGeolocation(const GeolocationData &data)
 {
     // Create a JSON object
-    DynamicJsonDocument doc(128); // Adjust size based on data complexity
+    JsonDocument doc;
 
     JsonObject root = doc.to<JsonObject>();
     root["latitude"] = data.latitude;
@@ -81,4 +81,6 @@ void BLEManager::updateGeolocation(const GeolocationData &data)
 
     // Set the value of the geolocation characteristic
     geolocationCharacteristic->setValue(jsonBuffer);
+
+    log("Geolocation updated: " + String(data.latitude) + "," + String(data.longitude), "BLEManager.updateGeolocation");
 }
