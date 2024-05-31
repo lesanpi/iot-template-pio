@@ -8,6 +8,7 @@
 #include "ConfigurationUseCase.h"
 #include "MileageMeterUseCase.h"
 #include "WifiScannerManager.h"
+#include "ELM327Manager.h"
 
 /// TIMES
 #define RESET_TIME_MAX 5000
@@ -35,18 +36,16 @@ MemoryManager *memoryManager;
 InputManager *inputManager;
 OutputManager *outputManager;
 WiFiScannerManager *wifiScannerManager;
-MileageMeterUseCase *mileageMeterUseCase;
+ELM327Manager *elm327Manager;
 
 /// Use cases
+MileageMeterUseCase *mileageMeterUseCase;
 ConfigurationUseCase *configurationUseCase;
 
-int kilometers = 0;
+/// Client
+WiFiClient client;
 
-void WiFiGotIP(WiFiEvent_t event)
-{
-  Serial.println("WiFi connected");
-  Serial.println("IP address: ");
-}
+int kilometers = 0;
 
 void setup()
 {
@@ -70,7 +69,8 @@ void setup()
   /// Use cases
   configurationUseCase = new ConfigurationUseCase(memoryManager, gpsManager, bleManager, inputManager, outputManager);
   mileageMeterUseCase = new MileageMeterUseCase(memoryManager, gpsManager, bleManager, inputManager, outputManager);
-  wifiScannerManager = new WiFiScannerManager("WiFi_OBDII", -50);
+  wifiScannerManager = new WiFiScannerManager("WiFi_OBDII", -55);
+  elm327Manager = new ELM327Manager(client);
   /// Begin managers
   inputManager->setup();
   memoryManager->begin();
@@ -83,6 +83,7 @@ void setup()
                {
 if (event == WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_DISCONNECTED) {
   wifiScannerManager->disconnected();
+  elm327Manager->disconnected();
         } }, WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
 
   /// Begin use cases
@@ -95,6 +96,11 @@ void loop()
   configurationUseCase->loop();
   mileageMeterUseCase->loop();
   wifiScannerManager->loop();
+  if (wifiScannerManager->isConnected() && !elm327Manager->isConnected())
+  {
+    elm327Manager->begin();
+  }
+  elm327Manager->loop();
 
   // kilometers++;
   // log("🔄 Kilometers changed... " + String(kilometers) + " km", "LOOP");
