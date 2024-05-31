@@ -2,12 +2,13 @@
 
 void WiFiScannerManager::connect()
 {
-    if (connected) {
-      log("Ya esta conectado a una red WiFi.", "WiFiScannerManagerManager.connect()");
-      return;
+    if (connected)
+    {
+        log("Ya esta conectado a una red WiFi.", "WiFiScannerManagerManager.connect()");
+        return;
     }
     // Escanea redes WiFi disponibles
-    int scanResultsCount = WiFi.scanNetworks(ssid = this->ssid);
+    int scanResultsCount = WiFi.scanNetworks();
 
     // Recorre las redes encontradas
     for (int i = 0; i < scanResultsCount; i++)
@@ -16,10 +17,13 @@ void WiFiScannerManager::connect()
         // WiFiScanResult result = WiFi.scanResults(i);
         String resultSSID = WiFi.SSID(i);
         int resultRSSI = WiFi.RSSI(i);
+        log("🧭 WiFi Scanned!: " + resultSSID + " with RSSI: " + String(resultRSSI), "WiFiScannerManagerManager.connect()");
 
         // Comprueba si coincide con el SSID deseado
         if (strcmp(resultSSID.c_str(), ssid) == 0)
         {
+            log("🧭 WiFi FOUND!", "WiFiScannerManagerManager.connect()");
+
             // Verifica si el RSI es lo suficientemente alto
             if (resultRSSI >= minRSSI)
             {

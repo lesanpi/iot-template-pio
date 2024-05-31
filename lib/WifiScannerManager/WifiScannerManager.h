@@ -11,9 +11,7 @@ public:
         this->ssid = ssid;
         this->minRSSI = minRSSI;
     }
-    void begin(){
-   
-    }
+    void begin(){}
 
     void connect();
     void loop() {
@@ -21,7 +19,7 @@ public:
         unsigned long now = millis();
 
         // Check a minute has passed since the last run
-        if (now - lastConnectTime >= 60000) {
+        if (now - lastConnectTime >= 30000) {
             // Actualiza el tiempo de la última ejecución
             lastConnectTime = now;
 
@@ -33,6 +31,18 @@ public:
     void disconnected(){
         log("Disconnected from WiFI", "WiFiScannerManager.onEvent()");
         connected = false;
+    }
+
+    bool isConnected(){
+        return connected;
+    }
+
+    /// on Wifi Event occurred
+    void onWiFiEvent(WiFiEvent_t event) {
+        if (event == WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_DISCONNECTED) {
+            log("Disconnected from WiFI", "WiFiScannerManager.onEvent()");
+            connected = false;
+        }
     }
 
 
@@ -47,15 +57,6 @@ private:
     /// Last time of execution of `connect()`
     unsigned long lastConnectTime = 0; 
 
-    /// on Wifi Event occurred
-    void onWiFiEvent(WiFiEvent_t event) {
-        if (event == ARDUINO_EVENT_WIFI_STA_DISCONNECTED) {
-            log("Disconnected from WiFI", "WiFiScannerManager.onEvent()");
-            connected = false;
-        }
-    }
-    
-    
 };
 
 #endif

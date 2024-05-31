@@ -80,7 +80,10 @@ void setup()
   wifiScannerManager->begin();
 
   WiFi.onEvent([](WiFiEvent_t event)
-               { wifiScannerManager->disconnected(); }, WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
+               {
+if (event == WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_DISCONNECTED) {
+  wifiScannerManager->disconnected();
+        } }, WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
 
   /// Begin use cases
   configurationUseCase->begin();
