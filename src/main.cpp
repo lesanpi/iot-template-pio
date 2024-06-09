@@ -81,6 +81,7 @@ void setup()
 
   WiFi.onEvent([](WiFiEvent_t event)
                {
+                log("Event received " + String(event), "WiFi.onEvent");
 if (event == WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_DISCONNECTED) {
   wifiScannerManager->disconnected();
   elm327Manager->disconnected();

@@ -4,7 +4,22 @@
 #include <WiFi.h>
 #include "Development.h"
 #include "ELMduino.h"
-
+typedef enum
+{
+    ENG_RPM,
+    ENG_COOLANT_TEMP,
+    ENG_OIL_TEMP,
+    TIME_MIL_ON,
+    DIST_MIL_ON,
+    FUEL_PRESSURE,
+    ABS_BARO_PRESSURE,
+    COMMANDED_EGR,
+    EGR_ERROR,
+    DISTANCE_SINCE_DTC_CLEARED,
+    MAF,
+    VIN,
+    SPEED,
+} manager_obd_query;
 class ELM327Manager
 {
 public:
@@ -15,13 +30,18 @@ public:
     void begin(unsigned long timeout = 10000);
 
     // Read absolute Barometric Pressure (replace with desired function)
-    float absBaroPressure();
-    float engineCoolantTemp();
-    float fuelLevel();
+    void absBaroPressure();
+    void engineCoolantTemp();
+    void fuelLevel();
 
     bool isConnected()
     {
-        return connected;
+        return connected && clientInitialized && initialized;
+    }
+
+    bool isGettingMessage()
+    {
+        return elm327Client.nb_rx_state == ELM_GETTING_MSG;
     }
 
     void disconnected()
@@ -30,6 +50,8 @@ public:
             return;
         log("Disconnected from ELM327", "ELM327.disconnected()");
         connected = false;
+        clientInitialized = false;
+        initialized = false;
     }
     void loop()
     {
@@ -38,21 +60,23 @@ public:
         unsigned long now = millis();
 
         // Check a minute has passed since the last run
-        if (now - lastDataExtractionTime >= 60000 * 3)
+        int timeToWait = isGettingMessage() ? 1000 : 10000;
+        if (now - lastDataExtractionTime >= timeToWait)
         {
             if (!isConnected())
             {
-                log("ELM327 is not Connected", "ELM327.loop()");
+                // log("ELM327 is not Connected", "ELM327.loop()");
                 return;
             }
             // Update last connectTme
             lastDataExtractionTime = now;
             log("Data Extraction...", "ELM327.loop()");
             yield();
-            elm327Client.flushInputBuff();
 
             absBaroPressure();
+            // elm327Client.flushInputBuff();
             // engineCoolantTemp();
+
             // fuelLevel();
         }
     }
@@ -67,6 +91,10 @@ private:
     bool silent;
     /// Manager is connected to a ELM327
     bool connected = false;
+    /// Client ELM327 initialized
+    bool clientInitialized = false;
+    /// Elm327 is initilized
+    bool initialized = false;
     unsigned long timeout;
 
     /// Last time execution of data scrapping

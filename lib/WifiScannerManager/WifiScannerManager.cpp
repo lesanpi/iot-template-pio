@@ -2,9 +2,9 @@
 
 void WiFiScannerManager::connect()
 {
-    if (connected)
+    if (WiFi.isConnected())
     {
-        log("Ya esta conectado a una red WiFi.", "WiFiScannerManagerManager.connect()");
+        log("Ya esta conectado a una red WiFi.", "WiFiScannerManager.connect()");
         return;
     }
     // Escanea redes WiFi disponibles

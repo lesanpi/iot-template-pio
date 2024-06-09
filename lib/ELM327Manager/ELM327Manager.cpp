@@ -5,66 +5,72 @@ ELM327Manager::ELM327Manager(WiFiClient &client, bool silent, unsigned long time
 void ELM327Manager::begin(unsigned long timeout)
 {
 
-    if (connected)
-        return;
-    if (client.connect(IPAddress(192, 168, 0, 10), 35000))
+    if (!connected && client.connect(IPAddress(192, 168, 0, 10), 35000))
+    {
+        connected = true;
         log("Connected to ELM327 server", "ELM327Manager");
+    }
     else
-        return;
-    bool result = elm327Client.begin(client, true, 10000);
-    bool resultInit = elm327Client.initializeELM();
+    {
+        // return;
+    }
+    if (connected && !clientInitialized)
+    {
+        clientInitialized = elm327Client.begin(client, true, 10000);
+        if (!clientInitialized)
+        {
+            log("Init elm client failed", "ELM327Manager");
+            WiFi.reconnect();
+            begin();
+        }
+    }
+    initialized = elm327Client.initializeELM();
 
-    connected = true;
-    log("Connection finalized correctly. Result: " + String(result) + " Result init: " + String(resultInit), "ELM327Manager");
+    log("Connection finalized correctly. Result: " + String(clientInitialized) + " Result init: " + String(initialized), "ELM327Manager");
 }
 
-float ELM327Manager::absBaroPressure()
+void ELM327Manager::absBaroPressure()
 {
-    float tempRPM = elm327Client.absBaroPressure();
+    float absBaroPressure = elm327Client.absBaroPressure();
 
     if (elm327Client.nb_rx_state == ELM_SUCCESS)
     {
-        log("Abs Baro Pressure is: " + String(tempRPM) + " kpa", "ELM327Manager.absBaroPressure");
-        return tempRPM;
+        log("Abs Baro Pressure is: " + String(absBaroPressure) + " kpa", "ELM327Manager.absBaroPressure");
     }
-    else
+    else if (elm327Client.nb_rx_state != ELM_GETTING_MSG)
     {
-        // printError();
-        log("Abs Baro Pressure failed", "ELM327Manager.absBaroPressure");
 
-        return tempRPM;
+        elm327Client.printError();
     }
 }
 
-float ELM327Manager::fuelLevel()
+void ELM327Manager::fuelLevel()
 {
     float fuelPercent = elm327Client.fuelLevel(); // Replace with actual call if different
 
     if (elm327Client.nb_rx_state == ELM_SUCCESS)
     {
         log("Fuel Level: " + String(fuelPercent) + "%", "ELM327Manager");
-        return fuelPercent;
     }
-    else
+    else if (elm327Client.nb_rx_state != ELM_GETTING_MSG)
     {
-        printError(); // Assuming you have a printError function defined
-        log("Abs Baro Pressure failed", "ELM327Manager.absBaroPressure");
 
-        return -100.0f; // Or any default value on error
+        log("Error getting engine coolant temp", "ELM327Manager.fuelLevel");
+        elm327Client.printError();
     }
 }
 
-float ELM327Manager::engineCoolantTemp()
+void ELM327Manager::engineCoolantTemp()
 {
     float tempValue = elm327Client.engineCoolantTemp(); // Replace with actual call if different
 
     if (elm327Client.nb_rx_state == ELM_SUCCESS)
     {
-        log("Engine Coolant Temperature: " + String(tempValue) + "°C", "ELM327Manager");
-        return tempValue;
+        log("Engine Coolant Temperature: " + String(tempValue) + "°C", "ELM327Manager.engineCoolantTemp");
     }
-    else
+    else if (elm327Client.nb_rx_state != ELM_GETTING_MSG)
     {
-        printError(); // Assuming you have a printError function defined
+        log("Error getting engine coolant temp", "ELM327Manager.engineCoolantTemp");
+        elm327Client.printError();
     }
 }
