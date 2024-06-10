@@ -11,15 +11,17 @@ public:
         this->ssid = ssid;
         this->minRSSI = minRSSI;
     }
-    void begin(){}
+    void begin() {}
 
     void connect();
-    void loop() {
+    void loop()
+    {
         // Time in milliseccond
         unsigned long now = millis();
 
         // Check a minute has passed since the last run
-        if (now - lastConnectTime >= 30000) {
+        if (now - lastConnectTime >= 10000)
+        {
             // Actualiza el tiempo de la última ejecución
             lastConnectTime = now;
 
@@ -28,24 +30,29 @@ public:
         }
     }
 
-    void disconnected(){
-        if (!connected) return;
+    void disconnected()
+    {
+        if (!connected)
+            return;
         log("Disconnected from WiFI", "WiFiScannerManager.onEvent()");
         connected = false;
+        WiFi.disconnect();
     }
 
-    bool isConnected(){
-        return connected;
+    bool isConnected()
+    {
+        return connected && WiFi.isConnected();
     }
 
     /// on Wifi Event occurred
-    void onWiFiEvent(WiFiEvent_t event) {
-        if (event == WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_DISCONNECTED) {
+    void onWiFiEvent(WiFiEvent_t event)
+    {
+        if (event == WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_DISCONNECTED)
+        {
             log("Disconnected from WiFI", "WiFiScannerManager.onEvent()");
             connected = false;
         }
     }
-
 
 private:
     // WiFi name to search
@@ -56,8 +63,7 @@ private:
     bool connected = false;
 
     /// Last time of execution of `connect()`
-    unsigned long lastConnectTime = 0; 
-
+    unsigned long lastConnectTime = 0;
 };
 
 #endif

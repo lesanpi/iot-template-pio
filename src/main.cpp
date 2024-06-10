@@ -81,11 +81,13 @@ void setup()
 
   WiFi.onEvent([](WiFiEvent_t event)
                {
-                log("Event received " + String(event), "WiFi.onEvent");
-if (event == WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_DISCONNECTED) {
-  wifiScannerManager->disconnected();
-  elm327Manager->disconnected();
-        } }, WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
+                 log("Event received " + String(event), "WiFi.onEvent");
+                 wifiScannerManager->disconnected();
+                 elm327Manager->disconnected();
+                 // if (event == WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_DISCONNECTED) {
+                 //         }
+               },
+               WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
 
   /// Begin use cases
   configurationUseCase->begin();
@@ -94,8 +96,8 @@ if (event == WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_DISCONNECTED) {
 void loop()
 {
 
-  configurationUseCase->loop();
-  mileageMeterUseCase->loop();
+  // configurationUseCase->loop();
+  // mileageMeterUseCase->loop();
   wifiScannerManager->loop();
   if (wifiScannerManager->isConnected() && !elm327Manager->isConnected())
   {
