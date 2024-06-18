@@ -1,14 +1,15 @@
 #include "ConfigurationUseCase.h"
 #include "Development.h"
-
 #include "InputManager.h"
-ConfigurationUseCase::ConfigurationUseCase(MemoryManager *memoryManager, GPSManager *gpsManager, BLEManager *bleManager, InputManager *inputManager, OutputManager *outputManager)
+
+ConfigurationUseCase::ConfigurationUseCase(MemoryManager *memoryManager, GPSManager *gpsManager, BLEManager *bleManager, InputManager *inputManager, OutputManager *outputManager, ELM327Manager *elm327Manager)
 {
     this->memoryManager = memoryManager;
     this->gpsManager = gpsManager;
     this->bleManager = bleManager;
     this->inputManager = inputManager;
     this->outputManager = outputManager;
+    this->elm327Manager = elm327Manager;
 }
 
 bool ConfigurationUseCase::isConfigured()
@@ -38,6 +39,7 @@ void ConfigurationUseCase::begin()
     /// Set bluetooth callback
     bleManager->setVehicleCharacteristicCallback(this);
     log("Vehicle characteristic callback setted", "ConfigurationUseCase.begin()");
+    elm327Manager->setVehicleId(memoryManager->getVehicleId());
     bleManager->updateVehicleId(memoryManager->getVehicleId());
     bleManager->updateKilometers(memoryManager->getTotalDistanceTraveled());
 }

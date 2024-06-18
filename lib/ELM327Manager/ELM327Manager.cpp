@@ -1,10 +1,19 @@
 #include "ELM327Manager.h"
 
-ELM327Manager::ELM327Manager(WiFiClient &client, bool silent, unsigned long timeout) : client(client), silent(!silent), timeout(timeout) {}
+ELM327Manager::ELM327Manager(WiFiClient &client, bool silent, unsigned long timeout, bool useMock) : client(client), silent(!silent), timeout(timeout)
+{
+    this->useMock = useMock;
+    log("Use mock " + String(useMock), "ELM327Manager");
+}
 
 void ELM327Manager::extractData()
 {
 
+    if (useMock)
+    {
+        delay(500);
+        return;
+    }
     switch (currentQuery)
     {
     case VIN:
@@ -136,7 +145,7 @@ void ELM327Manager::begin(unsigned long timeout)
             begin();
         }
     }
-    initialized = elm327Client.initializeELM();
+    initialized = elm327Client.initializeELM((char)48, 10000);
 
     log("Connection finalized correctly. Result: " + String(clientInitialized) + " Result init: " + String(initialized), "ELM327Manager");
 }
@@ -148,6 +157,7 @@ void ELM327Manager::absBaroPressure()
     if (elm327Client.nb_rx_state == ELM_SUCCESS)
     {
         log("Abs Baro Pressure is: " + String(absBaroPressure) + " kpa", "ELM327Manager");
+        absBaroPressureValue = absBaroPressure;
         nextQuery();
     }
     else if (elm327Client.nb_rx_state != ELM_GETTING_MSG)
@@ -171,6 +181,8 @@ void ELM327Manager::fuelPressure()
     if (elm327Client.nb_rx_state == ELM_SUCCESS)
     {
         log("Fuel Pressure: " + String(fuelPressure) + "%", "ELM327Manager");
+        fuelPressureValue = fuelPressure;
+
         nextQuery();
     }
     else if (elm327Client.nb_rx_state != ELM_GETTING_MSG)
@@ -190,6 +202,8 @@ void ELM327Manager::engineCoolantTemp()
     if (elm327Client.nb_rx_state == ELM_SUCCESS)
     {
         log("Engine Coolant Temperature: " + String(tempValue) + "°C", "ELM327Manager.engineCoolantTemp");
+        engineCoolantTempValue = tempValue;
+
         nextQuery();
     }
     else if (elm327Client.nb_rx_state != ELM_GETTING_MSG)
@@ -208,6 +222,8 @@ void ELM327Manager::engineOilTemp()
     if (elm327Client.nb_rx_state == ELM_SUCCESS)
     {
         log("Engine Oil Temperature: " + String(tempValue) + "°C", "ELM327Manager");
+        engineOilTempValue = tempValue;
+
         nextQuery();
     }
     else if (elm327Client.nb_rx_state != ELM_GETTING_MSG)
@@ -221,11 +237,13 @@ void ELM327Manager::engineOilTemp()
 
 void ELM327Manager::timeMILOn()
 {
-    float timeRunWithMIL = elm327Client.timeRunWithMIL();
+    int timeRunWithMIL = elm327Client.timeRunWithMIL();
 
     if (elm327Client.nb_rx_state == ELM_SUCCESS)
     {
         log("timeMILOn: " + String(timeRunWithMIL) + "min", "ELM327Manager");
+        timeRunWithMILValue = timeRunWithMIL;
+
         nextQuery();
     }
     else if (elm327Client.nb_rx_state != ELM_GETTING_MSG)
@@ -239,11 +257,13 @@ void ELM327Manager::timeMILOn()
 
 void ELM327Manager::distanceMILOn()
 {
-    float distanceMILOn = elm327Client.distTravelWithMIL();
+    int distanceMILOn = elm327Client.distTravelWithMIL();
 
     if (elm327Client.nb_rx_state == ELM_SUCCESS)
     {
         log("distanceMILOn: " + String(distanceMILOn) + "km", "ELM327Manager");
+        distanceRunWithMILValue = distanceMILOn;
+
         nextQuery();
     }
     else if (elm327Client.nb_rx_state != ELM_GETTING_MSG)
@@ -262,6 +282,8 @@ void ELM327Manager::commandedEGR()
     if (elm327Client.nb_rx_state == ELM_SUCCESS)
     {
         log("commandedEGR: " + String(commandedEGR) + "%", "ELM327Manager");
+        commandedEGRValue = commandedEGR;
+
         nextQuery();
     }
     else if (elm327Client.nb_rx_state != ELM_GETTING_MSG)
@@ -280,6 +302,7 @@ void ELM327Manager::errorEGR()
     if (elm327Client.nb_rx_state == ELM_SUCCESS)
     {
         log("errorEGR: " + String(errorEGR) + "%", "ELM327Manager");
+        errorEGRValue = errorEGR;
         nextQuery();
     }
     else if (elm327Client.nb_rx_state != ELM_GETTING_MSG)
@@ -297,7 +320,9 @@ void ELM327Manager::maf()
 
     if (elm327Client.nb_rx_state == ELM_SUCCESS)
     {
-        log("maf: " + String(maf) + "%", "ELM327Manager");
+        log("maf: " + String(maf) + " g/s", "ELM327Manager");
+        mafValue = maf;
+
         nextQuery();
     }
     else if (elm327Client.nb_rx_state != ELM_GETTING_MSG)
@@ -317,6 +342,8 @@ void ELM327Manager::vin()
     if (response == ELM_SUCCESS)
     {
         log("VIN: " + String(vin), "ELM327Manager");
+        vinValue = vin;
+
         nextQuery();
     }
     else
@@ -334,6 +361,8 @@ void ELM327Manager::intakeAirTemp()
     if (elm327Client.nb_rx_state == ELM_SUCCESS)
     {
         log("intakeAirTemp: " + String(intakeAirTemp) + " C", "ELM327Manager");
+        intakeAirTempValue = intakeAirTemp;
+
         nextQuery();
     }
     else if (elm327Client.nb_rx_state != ELM_GETTING_MSG)
@@ -352,6 +381,7 @@ void ELM327Manager::manifoldPressure()
     if (elm327Client.nb_rx_state == ELM_SUCCESS)
     {
         log("manifoldPressure: " + String(manifoldPressure) + " C", "ELM327Manager");
+        manifoldPressureValue = manifoldPressure;
         nextQuery();
     }
     else if (elm327Client.nb_rx_state != ELM_GETTING_MSG)
@@ -366,13 +396,30 @@ void ELM327Manager::manifoldPressure()
 void ELM327Manager::isMILOn()
 {
     elm327Client.monitorStatus();
+    // elm327Client.commandedSecAirStatus();
 
     if (elm327Client.nb_rx_state == ELM_SUCCESS)
     {
-        milStatus = (elm327Client.responseByte_2 & 0x80);
-        numCodes = (elm327Client.responseByte_2 - 0x80);
+        uint8_t milStatusRespose = (elm327Client.responseByte_3 & 0x80);
+        log("Response Byte0: " + String(elm327Client.responseByte_0), "ELM327Manager");
+        log("Response Byte1: " + String(elm327Client.responseByte_1), "ELM327Manager");
+        log("Response Byte2: " + String(elm327Client.responseByte_2), "ELM327Manager");
+        log("Response Byte3: " + String(elm327Client.responseByte_3), "ELM327Manager");
+
+        numCodes = (elm327Client.responseByte_3 - 0x80);
+        if (milStatusRespose)
+        {
+            log("MIL ON.", "ELM327Manager");
+            milStatus = true;
+        }
+        else
+        {
+            log("MIL OFF.", "ELM327Manager");
+            milStatus = false;
+        }
         log("isMILOn: " + String(milStatus), "ELM327Manager");
         log("numCodesMIL: " + String(numCodes), "ELM327Manager");
+
         nextQuery();
     }
     else if (elm327Client.nb_rx_state != ELM_GETTING_MSG)
@@ -393,7 +440,9 @@ void ELM327Manager::getMILCodes()
 
     if (elm327Client.nb_rx_state == ELM_SUCCESS)
     {
-        for (int i = 0; i < elm327Client.DTC_Response.codesFound; i++)
+        log("Codes found: " + String(elm327Client.DTC_Response.codesFound), "ELM327Manager.codesFound");
+
+        for (int i = 0; i < elm327Client.DTC_Response.codesFound + 1; i++)
         {
             log(elm327Client.DTC_Response.codes[i], "ELM327Manager.CODE_FOUND");
         }

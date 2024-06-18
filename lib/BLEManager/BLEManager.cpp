@@ -13,12 +13,13 @@ class MyServerCallbacks : public BLEServerCallbacks
     }
 };
 
-BLEManager::BLEManager(std::__cxx11::string deviceName, const char *serviceUUID, const char *kilometersUUID, const char *vehicleUUID, const char *geolocationUUID)
+BLEManager::BLEManager(std::__cxx11::string deviceName, const char *serviceUUID, const char *kilometersUUID, const char *vehicleUUID, const char *geolocationUUID, const char *scannerDataUUID)
 {
     this->serviceUUID = serviceUUID;
     this->kilometersCharacteristicUUID = kilometersUUID;
     this->vehicleCharacteristicUUID = vehicleUUID;
     this->geolocationCharacteristicUUID = geolocationUUID;
+    this->scannerDataCharacteristicUUID = scannerDataUUID;
     // Initialize BLE
     BLEDevice::init(deviceName);
 
@@ -29,8 +30,8 @@ BLEManager::BLEManager(std::__cxx11::string deviceName, const char *serviceUUID,
     // Create and add characteristic
     kilometersCharacteristic = pService->createCharacteristic(this->kilometersCharacteristicUUID, BLECharacteristic::PROPERTY_READ);
     geolocationCharacteristic = pService->createCharacteristic(this->geolocationCharacteristicUUID, BLECharacteristic::PROPERTY_READ);
-    vehicleCharacteristic = pService->createCharacteristic(this->vehicleCharacteristicUUID, BLECharacteristic::PROPERTY_READ |
-                                                                                                BLECharacteristic::PROPERTY_WRITE);
+    vehicleCharacteristic = pService->createCharacteristic(this->vehicleCharacteristicUUID, BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_WRITE);
+    scannerDataCharacteristic = pService->createCharacteristic(this->scannerDataCharacteristicUUID, BLECharacteristic::PROPERTY_READ);
 }
 
 void BLEManager::begin()
@@ -65,6 +66,14 @@ void BLEManager::updateVehicleId(String id)
 {
     vehicleCharacteristic->setValue(id.c_str());
     vehicleCharacteristic->notify();
+}
+
+void BLEManager::updateScannerData(String data)
+{
+
+    // log("OBD2 Scanner data updated", "BLEManager.updateScannerData");
+    scannerDataCharacteristic->setValue(data.c_str());
+    scannerDataCharacteristic->notify();
 }
 void BLEManager::updateGeolocation(const GeolocationData &data)
 {
