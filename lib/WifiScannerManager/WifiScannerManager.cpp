@@ -14,35 +14,37 @@ void WiFiScannerManager::connect()
     for (int i = 0; i < scanResultsCount; i++)
     {
         // Obtiene la información de la red actual
-        // WiFiScanResult result = WiFi.scanResults(i);
-        String resultSSID = WiFi.SSID(i);
+        String ssid = WiFi.SSID(i);
         int resultRSSI = WiFi.RSSI(i);
-        log("🧭 WiFi Scanned!: " + resultSSID + " with RSSI: " + String(resultRSSI), "WiFiScannerManagerManager.connect()");
+        log("🧭 WiFi Scanned!: " + ssid + " with RSSI: " + String(resultRSSI), "WiFiScannerManagerManager.connect()");
 
         // Comprueba si coincide con el SSID deseado
-        if (strcmp(resultSSID.c_str(), ssid) == 0)
+        for (int j = 0; j < ssidList.numSsids; j++)
         {
-            log("🧭 WiFi FOUND!", "WiFiScannerManagerManager.connect()");
-
-            // Verifica si el RSI es lo suficientemente alto
-            if (resultRSSI >= minRSSI)
+            if (strcmp(ssid.c_str(), ssidList.ssids[j]) == 0)
             {
-                // Trying to connect
-                log("Start connection with: " + resultSSID + " with RSSI: " + String(resultRSSI), "WiFiScannerManagerManager.connect()");
-                WiFi.begin(ssid);
+                log("🧭 WiFi FOUND!", "WiFiScannerManagerManager.connect()");
 
-                // Espera a que la conexión se establezca
-                while (WiFi.status() != WL_CONNECTED)
+                // Verifica si el RSI es lo suficientemente alto
+                if (resultRSSI >= minRSSI)
                 {
-                    delay(500);
-                    Serial.print(".");
+                    // Trying to connect
+                    log("Start connection with: " + ssid + " with RSSI: " + String(resultRSSI), "WiFiScannerManagerManager.connect()");
+                    WiFi.begin(ssid.c_str());
+
+                    // Espera a que la conexión se establezca
+                    while (WiFi.status() != WL_CONNECTED)
+                    {
+                        delay(500);
+                        Serial.print(".");
+                    }
+
+                    // Success
+                    log("✅ WiFi conectado!", "WiFiScannerManager.connect()");
+                    connected = true;
+
+                    return;
                 }
-
-                // Success
-                log("✅ WiFi conectado!", "WiFiScannerManager.connect()");
-                connected = true;
-
-                return;
             }
         }
     }

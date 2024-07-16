@@ -2,13 +2,19 @@
 #define WIFI_SCANNER_MANAGER_H
 #include <WiFi.h>
 #include "Development.h"
+struct SSIDList
+{
+    const char *ssids[4];
+    int numSsids;
+};
 
 class WiFiScannerManager
 {
 public:
-    WiFiScannerManager(const char *ssid, int minRSSI)
+    WiFiScannerManager(SSIDList ssidListSearch, int minRSSI)
     {
-        this->ssid = ssid;
+        // this->ssid = ssid;
+        ssidList = ssidListSearch;
         this->minRSSI = minRSSI;
     }
     void begin() {}
@@ -55,8 +61,8 @@ public:
     }
 
 private:
-    // WiFi name to search
-    const char *ssid;
+    /// @brief SSID List to search
+    SSIDList ssidList;
     // Min RSSI for connection
     int minRSSI;
 

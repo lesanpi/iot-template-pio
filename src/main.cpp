@@ -10,6 +10,7 @@
 #include "WifiScannerManager.h"
 #include "ELM327Manager.h"
 #include <ScannerUseCase.h>
+#include <BLEScannerManager.h>
 
 /// TIMES
 #define RESET_TIME_MAX 5000
@@ -41,7 +42,14 @@ MemoryManager *memoryManager;
 InputManager *inputManager;
 OutputManager *outputManager;
 WiFiScannerManager *wifiScannerManager;
+BLEScannerManager *bleScannerManager;
 ELM327Manager *elm327Manager;
+ELM327Manager *elm327BLEManager;
+
+/// SSID List for OBDII
+SSIDList ssidList = {
+    .ssids = {"WiFi_OBDII", "WIFI-OBDII"},
+    .numSsids = 2};
 
 /// Use cases
 
@@ -54,6 +62,8 @@ ScannerUseCase *scannerUseCase;
 
 /// Client
 WiFiClient client;
+/// BLE Client Serial
+BluetoothSerial serialBT;
 
 int kilometers = 0;
 
@@ -64,7 +74,8 @@ void setup()
   while (!Serial.availableForWrite())
     ;
   delay(2000);
-
+  // bool serialBegin = serialBT.begin("DEMO Lesanpi", true);
+  // log("serialBeigin " + serialBegin, "SETUP");
   log("🤖 Starting setup...", "SETUP");
 
   // ...
@@ -76,13 +87,20 @@ void setup()
   // gpsManager = new GPSManager(32, 33, true);
   memoryManager = new MemoryManager(1024);
   outputManager = new OutputManager(RED_PIN, GREEN_PIN, BLUE_PIN);
-  wifiScannerManager = new WiFiScannerManager("WiFi_OBDII", -55);
-  elm327Manager = new ELM327Manager(client, false, 10000, true);
+  /// Options:
+  ///  1. WiFi_OBDII
+  ///  2. WIFI-OBDII
+
+  wifiScannerManager = new WiFiScannerManager(ssidList, -55);
+
+  bleScannerManager = new BLEScannerManager("OBDII", serialBT, -60);
+  elm327BLEManager = new ELM327Manager(client, serialBT, false, 10000, false, ELM_Manager_Type::ELM_BLE);
+  elm327Manager = new ELM327Manager(client, serialBT, false, 10000, false, ELM_Manager_Type::ELM_WIFI);
 
   /// Use cases
   configurationUseCase = new ConfigurationUseCase(memoryManager, gpsManager, bleManager, inputManager, outputManager, elm327Manager);
   mileageMeterUseCase = new MileageMeterUseCase(memoryManager, gpsManager, bleManager, inputManager, outputManager);
-  scannerUseCase = new ScannerUseCase(elm327Manager, bleManager, wifiScannerManager);
+  scannerUseCase = new ScannerUseCase(elm327Manager, elm327BLEManager, bleManager, wifiScannerManager, bleScannerManager);
   /// Begin managers
   inputManager->setup();
   memoryManager->begin();
@@ -110,8 +128,9 @@ void loop()
 
   // configurationUseCase->loop();
   // mileageMeterUseCase->loop();
-  scannerUseCase->loop();
+  // scannerUseCase->loop();
 
+  bleScannerManager->loop();
   // wifiScannerManager->loop();
   // if (wifiScannerManager->isConnected() && !elm327Manager->isConnected())
   // {
@@ -127,3 +146,99 @@ void loop()
 
   // ...
 }
+
+// #include "BluetoothSerial.h"
+// #include "ELMduino.h"
+
+// BluetoothSerial SerialBT;
+// #define ELM_PORT SerialBT
+// #define DEBUG_PORT Serial
+// #if !defined(CONFIG_BT_ENABLED) || !defined(CONFIG_BLUEDROID_ENABLED)
+// #error Bluetooth is not enabled! Please run `make menuconfig` to and enable it
+// #endif
+
+// ELM327 myELM327;
+
+// typedef enum
+// {
+//   ENG_RPM,
+//   SPEED
+// } obd_pid_states;
+// obd_pid_states obd_state = ENG_RPM;
+
+// float rpm = 0;
+// float mph = 0;
+
+// // 1c:a1:35:69:8d:c5
+// uint8_t address[6] = {0x1c, 0xA1, 0x35, 0x69, 0x8D, 0xC5};
+
+// void setup()
+// {
+//   DEBUG_PORT.begin(115200);
+//   // SerialBT.setPin("1234");
+//   ELM_PORT.begin("ArduHUD", true);
+//   ELM_PORT.setPin("1234");
+//   ELM_PORT.setTimeout(60000);
+//   DEBUG_PORT.println("Starting Phase 1");
+
+//   // if (!ELM_PORT.connect("OBDII"))
+//   if (!ELM_PORT.connect(address))
+//   {
+//     DEBUG_PORT.println("Couldn't connect to OBD scanner - Phase 1");
+//     while (1)
+//       ;
+//   }
+
+//   if (!myELM327.begin(ELM_PORT, false, 2000))
+//   {
+//     DEBUG_PORT.println("Couldn't connect to OBD scanner - Phase 2");
+//     while (1)
+//       ;
+//   }
+
+//   DEBUG_PORT.println("Connected to ELM327");
+// }
+
+// void loop()
+// {
+//   switch (obd_state)
+//   {
+//   case ENG_RPM:
+//   {
+//     rpm = myELM327.rpm();
+
+//     if (myELM327.nb_rx_state == ELM_SUCCESS)
+//     {
+//       DEBUG_PORT.print("rpm: ");
+//       DEBUG_PORT.println(rpm);
+//       obd_state = SPEED;
+//     }
+//     else if (myELM327.nb_rx_state != ELM_GETTING_MSG)
+//     {
+//       myELM327.printError();
+//       obd_state = SPEED;
+//     }
+
+//     break;
+//   }
+
+//   case SPEED:
+//   {
+//     mph = myELM327.mph();
+
+//     if (myELM327.nb_rx_state == ELM_SUCCESS)
+//     {
+//       DEBUG_PORT.print("mph: ");
+//       DEBUG_PORT.println(mph);
+//       obd_state = ENG_RPM;
+//     }
+//     else if (myELM327.nb_rx_state != ELM_GETTING_MSG)
+//     {
+//       myELM327.printError();
+//       obd_state = ENG_RPM;
+//     }
+
+//     break;
+//   }
+//   }
+// }

@@ -5,11 +5,20 @@
 #include "Development.h"
 #include "ELMduino.h"
 #include <ArduinoJson.h>
+#include <BluetoothSerial.h>
+#include <BLEScannerManager.h>
+
+typedef enum
+{
+    ELM_BLE,
+    ELM_WIFI
+} ELM_Manager_Type;
 
 typedef enum
 {
     ENG_OIL_TEMP,               // Check ❌
     ENG_COOLANT_TEMP,           // Check ✅
+    MILEAGE,                    // Check ✅
     ABS_BARO_PRESSURE,          // Check ✅
     EGR_ERROR_PERCENTAGE,       // Check ❌
     COMMANDED_EGR_PERCENTAGE,   // Check ❌
@@ -30,14 +39,39 @@ class ELM327Manager
 {
 public:
     // Constructor
-    ELM327Manager(WiFiClient &client, bool silent = false, unsigned long timeout = 10000, bool useMock = false);
+    ELM327Manager(WiFiClient &client, BluetoothSerial &bleSerial, bool silent = false, unsigned long timeout = 10000, bool useMock = false, ELM_Manager_Type type = ELM_WIFI);
+
+    String getName()
+    {
+        if (isBLEType())
+            return "BLE - ELM327Manager";
+
+        return "WiFi - ELM327Manager";
+    }
+
+    /// Connection Type Wifi or BLE
+    ELM_Manager_Type type;
+
+    bool isBLEType()
+    {
+        return type == ELM_BLE;
+    }
+
+    bool isWiFiType()
+    {
+        return type == ELM_WIFI;
+    }
 
     // Initialize ELM327 communication
     void begin(unsigned long timeout = 10000);
 
     bool isConnected()
     {
-        return connected && clientInitialized && initialized && WiFi.isConnected();
+        if (isBLEType())
+        {
+            return connected && clientInitialized && initializedElm327 && bleSerial.connected();
+        }
+        return connected && clientInitialized && initializedElm327 && WiFi.isConnected() && client.connected();
     }
 
     bool isGettingMessage()
@@ -52,12 +86,14 @@ public:
 
     void disconnected()
     {
-        if (!connected)
-            return;
-        log("Disconnected from ELM327", "ELM327.disconnected()");
+        // if (!connected)
+        //     return;
+        log("Disconnected from ELM327", getName() + ".disconnected()");
+        bleSerial.disconnect();
+        hasData = false;
         connected = false;
         clientInitialized = false;
-        initialized = false;
+        initializedElm327 = false;
     }
     void loop()
     {
@@ -87,7 +123,7 @@ public:
             {
 
                 // delay(1000);
-                log("Data Extraction...", "ELM327.loop()");
+                log("Data Extraction...", getName() + "loop()");
             }
             extractData();
             // Update last connect time
@@ -122,6 +158,7 @@ public:
             // Generate mock data for all fields
             obj["vin"] = "JTDKW923572004448";
             obj["maf"] = 0.23;
+            obj["mileage"] = 100000;
             obj["absBaroPressure"] = 93;
             obj["fuelPressure"] = 80;
             obj["coolantTemperature"] = 27;
@@ -156,23 +193,23 @@ public:
         {
             obj["vin"] = vinValue;
         }
-        if (mafValue != -1)
+        if (mafValue >= 0)
         { // Check for NaN values
             obj["maf"] = mafValue;
         }
-        if (absBaroPressureValue != -1)
+        if (absBaroPressureValue >= 0)
         {
             obj["absBaroPressure"] = absBaroPressureValue;
         }
-        if (fuelPressureValue != -1)
+        if (fuelPressureValue >= 0)
         {
             obj["fuelPressure"] = fuelPressureValue;
         }
-        if (engineCoolantTempValue != -1)
+        if (engineCoolantTempValue >= 0)
         {
             obj["coolantTemperature"] = engineCoolantTempValue;
         }
-        if (engineOilTempValue != -1)
+        if (engineOilTempValue >= 0)
         {
             obj["oilTemperature"] = engineOilTempValue;
         }
@@ -185,19 +222,23 @@ public:
         {
             obj["kmMILOn"] = distanceRunWithMILValue;
         }
-        if (commandedEGRValue != -1)
+        if (mileageValue >= 0)
+        {
+            obj["mileage"] = mileageValue;
+        }
+        if (commandedEGRValue >= 0)
         {
             obj["commandedEGR"] = commandedEGRValue;
         }
-        if (isnan(errorEGRValue) != -1)
+        if (errorEGRValue >= 0)
         {
             obj["errorEGR"] = errorEGRValue;
         }
-        if (isnan(intakeAirTempValue) != -1)
+        if (intakeAirTempValue >= 0)
         {
             obj["intakeAirTemperature"] = intakeAirTempValue;
         }
-        if (isnan(manifoldPressureValue) != -1)
+        if (manifoldPressureValue >= 0)
         {
             obj["manifoldPressureKpa"] = manifoldPressureValue;
         }
@@ -239,6 +280,9 @@ private:
     /// @brief WiFi client
     WiFiClient &client;
 
+    /// @brief BLE Serial
+    BluetoothSerial &bleSerial;
+
     /// @brief Client to ELM327 WiFi service
     ELM327 elm327Client;
 
@@ -255,7 +299,7 @@ private:
     bool clientInitialized = false;
 
     /// @brief Elm327 is initilized
-    bool initialized = false;
+    bool initializedElm327 = false;
 
     /// @brief Timeout
     unsigned long timeout;
@@ -274,6 +318,9 @@ private:
 
     /// @brief  MAF
     float mafValue = -1;
+
+    /// @brief Mileage odometer value
+    float mileageValue = -1;
 
     /// @brief Abs Baro pressure
     float absBaroPressureValue = -1;
@@ -329,6 +376,8 @@ private:
         case ENG_OIL_TEMP:
             return ENG_COOLANT_TEMP;
         case ENG_COOLANT_TEMP:
+            return MILEAGE;
+        case MILEAGE:
             return ABS_BARO_PRESSURE;
         case ABS_BARO_PRESSURE:
             return EGR_ERROR_PERCENTAGE;
@@ -356,7 +405,7 @@ private:
             return MANIFOLD_PRESSURE_KPA;
         default:
             hasData = true;
-            log("✅ Has Data updated", "ELM327Manager.getNextQuery()");
+            log("✅ Has Data updated", getName() + ".getNextQuery()");
             return ENG_OIL_TEMP; // Reset to the beginning
         }
     }
@@ -365,10 +414,12 @@ private:
     {
         if (!silent)
         {
-            log("ELM327 Error!", "ELM327Manager");
+            log("ELM327 Error!", getName());
         }
     }
 
+    void odometer();
+    uint8_t getOdometerValue();
     void absBaroPressure();
     void engineCoolantTemp();
     void engineOilTemp();

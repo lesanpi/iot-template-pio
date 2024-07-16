@@ -1,9 +1,39 @@
 #include "ELM327Manager.h"
 
-ELM327Manager::ELM327Manager(WiFiClient &client, bool silent, unsigned long timeout, bool useMock) : client(client), silent(!silent), timeout(timeout)
+ELM327Manager::ELM327Manager(WiFiClient &client, BluetoothSerial &bleSerial, bool silent, unsigned long timeout, bool useMock, ELM_Manager_Type type) : client(client), bleSerial(bleSerial), silent(!silent), timeout(timeout)
 {
     this->useMock = useMock;
-    log("Use mock " + String(useMock), "ELM327Manager");
+    this->type = type;
+    log("Use mock " + String(useMock), getName());
+}
+
+void ELM327Manager::odometer()
+{
+    int mileage = getOdometerValue();
+    if (elm327Client.nb_rx_state == ELM_SUCCESS)
+    {
+        log("Odometer mileage is: " + String(mileage) + " Km", getName());
+        mileageValue = mileage;
+        nextQuery();
+    }
+    else if (elm327Client.nb_rx_state != ELM_GETTING_MSG)
+    {
+
+        elm327Client.printError();
+        /// Continue with next query if manager is not getting message
+        nextQuery();
+        if (elm327Client.nb_rx_state == ELM_TIMEOUT)
+        {
+            disconnected();
+            begin();
+        }
+    }
+}
+
+uint8_t ELM327Manager::getOdometerValue()
+{
+    log("Get Odometer", getName());
+    return (uint8_t)elm327Client.processPID(SERVICE_01, 166, 1, 4, 0.1);
 }
 
 void ELM327Manager::extractData()
@@ -19,7 +49,7 @@ void ELM327Manager::extractData()
     case VIN:
     {
         if (!isGettingMessage())
-            log("Extracting VIN", "ELM327Manager.extractData");
+            log("Extracting VIN", getName() + ".extractData");
 
         vin();
         break;
@@ -27,91 +57,98 @@ void ELM327Manager::extractData()
     case ENG_COOLANT_TEMP:
     {
         if (!isGettingMessage())
-            log("ENG_COOLANT_TEMP", "ELM327Manager.extractData");
+            log("ENG_COOLANT_TEMP", getName() + ".extractData");
         engineCoolantTemp();
+        break;
+    }
+    case MILEAGE:
+    {
+        if (!isGettingMessage())
+            log("MILEAGE", getName() + ".extractData");
+        odometer();
         break;
     }
     case ENG_OIL_TEMP:
     {
         if (!isGettingMessage())
-            log("ENG_OIL_TEMP", "ELM327Manager.extractData");
+            log("ENG_OIL_TEMP", getName() + ".extractData");
         engineOilTemp();
         break;
     }
     case TIME_MIL_ON:
     {
         if (!isGettingMessage())
-            log("TIME_MIL_ON", "ELM327Manager.extractData");
+            log("TIME_MIL_ON", getName() + ".extractData");
         timeMILOn();
         break;
     }
     case MIL_CODES:
     {
         if (!isGettingMessage())
-            log("MIL_CODES", "ELM327Manager.extractData");
+            log("MIL_CODES", getName() + ".extractData");
         getMILCodes();
         break;
     }
     case DIST_MIL_ON:
     {
         if (!isGettingMessage())
-            log("DIST_MIL_ON", "ELM327Manager.extractData");
+            log("DIST_MIL_ON", getName() + ".extractData");
         distanceMILOn();
         break;
     }
     case FUEL_PRESSURE_KPA:
     {
         if (!isGettingMessage())
-            log("FUEL_PRESSURE_KPA", "ELM327Manager.extractData");
+            log("FUEL_PRESSURE_KPA", getName() + ".extractData");
         fuelPressure();
         break;
     }
     case ABS_BARO_PRESSURE:
     {
         if (!isGettingMessage())
-            log("ABS_BARO_PRESSURE", "ELM327Manager.extractData");
+            log("ABS_BARO_PRESSURE", getName() + ".extractData");
         absBaroPressure();
         break;
     }
     case COMMANDED_EGR_PERCENTAGE:
     {
         if (!isGettingMessage())
-            log("COMMANDED_EGR_PERCENTAGE", "ELM327Manager.extractData");
+            log("COMMANDED_EGR_PERCENTAGE", getName() + ".extractData");
         commandedEGR();
         break;
     }
     case EGR_ERROR_PERCENTAGE:
     {
         if (!isGettingMessage())
-            log("EGR_ERROR_PERCENTAGE", "ELM327Manager.extractData");
+            log("EGR_ERROR_PERCENTAGE", getName() + ".extractData");
         errorEGR();
         break;
     }
     case MAF:
     {
         if (!isGettingMessage())
-            log("MAF", "ELM327Manager.extractData");
+            log("MAF", getName() + ".extractData");
         maf();
         break;
     }
     case INTAKE_AIR_TEMP_C:
     {
         if (!isGettingMessage())
-            log("INTAKE_AIR_TEMP", "ELM327Manager.extractData");
+            log("INTAKE_AIR_TEMP", getName() + ".extractData");
         intakeAirTemp();
         break;
     }
     case MANIFOLD_PRESSURE_KPA:
     {
         if (!isGettingMessage())
-            log("MANIFOLD_PRESSURE", "ELM327Manager.extractData");
+            log("MANIFOLD_PRESSURE", getName() + ".extractData");
         manifoldPressure();
         break;
     }
     case IS_MIL_ON:
     {
         if (!isGettingMessage())
-            log("IS_MIL_ON", "ELM327Manager.extractData");
+            log("IS_MIL_ON", getName() + ".extractData");
         isMILOn();
         break;
     }
@@ -126,28 +163,52 @@ void ELM327Manager::extractData()
 void ELM327Manager::begin(unsigned long timeout)
 {
 
+    if (isBLEType())
+    {
+
+        if (!connected && bleSerial.connected())
+        {
+            connected = true;
+            log("Connected to ELM327 BLE", getName());
+        }
+        if (connected && !clientInitialized)
+        {
+            clientInitialized = elm327Client.begin(bleSerial, false, 10000);
+            if (!clientInitialized)
+            {
+                log("Init elm client failed", getName());
+                begin();
+            }
+        }
+        initializedElm327 = elm327Client.initializeELM((char)48, 10000);
+        log("Connection finalized correctly. Result: " + String(clientInitialized) + " Result init: " + String(initializedElm327), getName());
+        return;
+    }
+
     if (!connected && client.connect(IPAddress(192, 168, 0, 10), 35000))
     {
         connected = true;
-        log("Connected to ELM327 server", "ELM327Manager");
+        log("Connected to ELM327 server", getName());
     }
     else
     {
-        // return;
+        connected = false;
+        return;
     }
+
     if (connected && !clientInitialized)
     {
         clientInitialized = elm327Client.begin(client, false, 10000);
         if (!clientInitialized)
         {
-            log("Init elm client failed", "ELM327Manager");
-            WiFi.reconnect();
-            begin();
+            log("Init elm client failed", getName());
+            connected = false;
+            // WiFi.reconnect();
+            // begin();
         }
     }
-    initialized = elm327Client.initializeELM((char)48, 10000);
-
-    log("Connection finalized correctly. Result: " + String(clientInitialized) + " Result init: " + String(initialized), "ELM327Manager");
+    initializedElm327 = elm327Client.initializeELM((char)48, 10000);
+    log("Connection finalized correctly. Result: " + String(clientInitialized) + " Result init: " + String(initializedElm327), getName());
 }
 
 void ELM327Manager::absBaroPressure()
@@ -156,7 +217,7 @@ void ELM327Manager::absBaroPressure()
 
     if (elm327Client.nb_rx_state == ELM_SUCCESS)
     {
-        log("Abs Baro Pressure is: " + String(absBaroPressure) + " kpa", "ELM327Manager");
+        log("Abs Baro Pressure is: " + String(absBaroPressure) + " kpa", getName());
         absBaroPressureValue = absBaroPressure;
         nextQuery();
     }
@@ -180,7 +241,7 @@ void ELM327Manager::fuelPressure()
 
     if (elm327Client.nb_rx_state == ELM_SUCCESS)
     {
-        log("Fuel Pressure: " + String(fuelPressure) + "%", "ELM327Manager");
+        log("Fuel Pressure: " + String(fuelPressure) + "%", getName());
         fuelPressureValue = fuelPressure;
 
         nextQuery();
@@ -188,7 +249,7 @@ void ELM327Manager::fuelPressure()
     else if (elm327Client.nb_rx_state != ELM_GETTING_MSG)
     {
 
-        log("Error getting fuel pressure", "ELM327Manager.fuelLevel");
+        log("Error getting fuel pressure", getName() + ".fuelLevel");
         elm327Client.printError();
         /// Continue with next query if manager is not getting message
         nextQuery();
@@ -201,14 +262,14 @@ void ELM327Manager::engineCoolantTemp()
 
     if (elm327Client.nb_rx_state == ELM_SUCCESS)
     {
-        log("Engine Coolant Temperature: " + String(tempValue) + "°C", "ELM327Manager.engineCoolantTemp");
+        log("Engine Coolant Temperature: " + String(tempValue) + "°C", getName() + ".engineCoolantTemp");
         engineCoolantTempValue = tempValue;
 
         nextQuery();
     }
     else if (elm327Client.nb_rx_state != ELM_GETTING_MSG)
     {
-        log("Error getting engine coolant temp", "ELM327Manager.engineCoolantTemp");
+        log("Error getting engine coolant temp", getName() + ".engineCoolantTemp");
         elm327Client.printError();
         /// Continue with next query if manager is not getting message
         nextQuery();
@@ -221,14 +282,14 @@ void ELM327Manager::engineOilTemp()
 
     if (elm327Client.nb_rx_state == ELM_SUCCESS)
     {
-        log("Engine Oil Temperature: " + String(tempValue) + "°C", "ELM327Manager");
+        log("Engine Oil Temperature: " + String(tempValue) + "°C", getName());
         engineOilTempValue = tempValue;
 
         nextQuery();
     }
     else if (elm327Client.nb_rx_state != ELM_GETTING_MSG)
     {
-        log("Error getting engine oil temp", "ELM327Manager");
+        log("Error getting engine oil temp", getName());
         elm327Client.printError();
         /// Continue with next query if manager is not getting message
         nextQuery();
@@ -241,14 +302,14 @@ void ELM327Manager::timeMILOn()
 
     if (elm327Client.nb_rx_state == ELM_SUCCESS)
     {
-        log("timeMILOn: " + String(timeRunWithMIL) + "min", "ELM327Manager");
+        log("timeMILOn: " + String(timeRunWithMIL) + "min", getName());
         timeRunWithMILValue = timeRunWithMIL;
 
         nextQuery();
     }
     else if (elm327Client.nb_rx_state != ELM_GETTING_MSG)
     {
-        log("Error getting timeMILOn", "ELM327Manager");
+        log("Error getting timeMILOn", getName());
         elm327Client.printError();
         /// Continue with next query if manager is not getting message
         nextQuery();
@@ -261,14 +322,14 @@ void ELM327Manager::distanceMILOn()
 
     if (elm327Client.nb_rx_state == ELM_SUCCESS)
     {
-        log("distanceMILOn: " + String(distanceMILOn) + "km", "ELM327Manager");
+        log("distanceMILOn: " + String(distanceMILOn) + "km", getName());
         distanceRunWithMILValue = distanceMILOn;
 
         nextQuery();
     }
     else if (elm327Client.nb_rx_state != ELM_GETTING_MSG)
     {
-        log("Error getting distanceMILOn", "ELM327Manager");
+        log("Error getting distanceMILOn", getName());
         elm327Client.printError();
         /// Continue with next query if manager is not getting message
         nextQuery();
@@ -281,14 +342,14 @@ void ELM327Manager::commandedEGR()
 
     if (elm327Client.nb_rx_state == ELM_SUCCESS)
     {
-        log("commandedEGR: " + String(commandedEGR) + "%", "ELM327Manager");
+        log("commandedEGR: " + String(commandedEGR) + "%", getName());
         commandedEGRValue = commandedEGR;
 
         nextQuery();
     }
     else if (elm327Client.nb_rx_state != ELM_GETTING_MSG)
     {
-        log("Error getting commandedEGR", "ELM327Manager");
+        log("Error getting commandedEGR", getName());
         elm327Client.printError();
         /// Continue with next query if manager is not getting message
         nextQuery();
@@ -301,13 +362,13 @@ void ELM327Manager::errorEGR()
 
     if (elm327Client.nb_rx_state == ELM_SUCCESS)
     {
-        log("errorEGR: " + String(errorEGR) + "%", "ELM327Manager");
+        log("errorEGR: " + String(errorEGR) + "%", getName());
         errorEGRValue = errorEGR;
         nextQuery();
     }
     else if (elm327Client.nb_rx_state != ELM_GETTING_MSG)
     {
-        log("Error getting errorEGR", "ELM327Manager");
+        log("Error getting errorEGR", getName());
         elm327Client.printError();
         /// Continue with next query if manager is not getting message
         nextQuery();
@@ -320,14 +381,14 @@ void ELM327Manager::maf()
 
     if (elm327Client.nb_rx_state == ELM_SUCCESS)
     {
-        log("maf: " + String(maf) + " g/s", "ELM327Manager");
+        log("maf: " + String(maf) + " g/s", getName());
         mafValue = maf;
 
         nextQuery();
     }
     else if (elm327Client.nb_rx_state != ELM_GETTING_MSG)
     {
-        log("Error getting maf", "ELM327Manager");
+        log("Error getting maf", getName());
         elm327Client.printError();
         /// Continue with next query if manager is not getting message
         nextQuery();
@@ -341,14 +402,14 @@ void ELM327Manager::vin()
 
     if (response == ELM_SUCCESS)
     {
-        log("VIN: " + String(vin), "ELM327Manager");
+        log("VIN: " + String(vin), getName());
         vinValue = vin;
 
         nextQuery();
     }
     else
     {
-        log("Error getting VIN", "ELM327Manager");
+        log("Error getting VIN", getName());
         elm327Client.printError();
         nextQuery();
     }
@@ -360,14 +421,14 @@ void ELM327Manager::intakeAirTemp()
 
     if (elm327Client.nb_rx_state == ELM_SUCCESS)
     {
-        log("intakeAirTemp: " + String(intakeAirTemp) + " C", "ELM327Manager");
+        log("intakeAirTemp: " + String(intakeAirTemp) + " C", getName());
         intakeAirTempValue = intakeAirTemp;
 
         nextQuery();
     }
     else if (elm327Client.nb_rx_state != ELM_GETTING_MSG)
     {
-        log("Error getting intakeAirTemp", "ELM327Manager");
+        log("Error getting intakeAirTemp", getName());
         elm327Client.printError();
         /// Continue with next query if manager is not getting message
         nextQuery();
@@ -380,13 +441,13 @@ void ELM327Manager::manifoldPressure()
 
     if (elm327Client.nb_rx_state == ELM_SUCCESS)
     {
-        log("manifoldPressure: " + String(manifoldPressure) + " C", "ELM327Manager");
+        log("manifoldPressure: " + String(manifoldPressure) + " C", getName());
         manifoldPressureValue = manifoldPressure;
         nextQuery();
     }
     else if (elm327Client.nb_rx_state != ELM_GETTING_MSG)
     {
-        log("Error getting manifoldPressure", "ELM327Manager");
+        log("Error getting manifoldPressure", getName());
         elm327Client.printError();
         /// Continue with next query if manager is not getting message
         nextQuery();
@@ -401,30 +462,30 @@ void ELM327Manager::isMILOn()
     if (elm327Client.nb_rx_state == ELM_SUCCESS)
     {
         uint8_t milStatusRespose = (elm327Client.responseByte_3 & 0x80);
-        log("Response Byte0: " + String(elm327Client.responseByte_0), "ELM327Manager");
-        log("Response Byte1: " + String(elm327Client.responseByte_1), "ELM327Manager");
-        log("Response Byte2: " + String(elm327Client.responseByte_2), "ELM327Manager");
-        log("Response Byte3: " + String(elm327Client.responseByte_3), "ELM327Manager");
+        log("Response Byte0: " + String(elm327Client.responseByte_0), getName());
+        log("Response Byte1: " + String(elm327Client.responseByte_1), getName());
+        log("Response Byte2: " + String(elm327Client.responseByte_2), getName());
+        log("Response Byte3: " + String(elm327Client.responseByte_3), getName());
 
         numCodes = (elm327Client.responseByte_3 - 0x80);
         if (milStatusRespose)
         {
-            log("MIL ON.", "ELM327Manager");
+            log("MIL ON.", getName());
             milStatus = true;
         }
         else
         {
-            log("MIL OFF.", "ELM327Manager");
+            log("MIL OFF.", getName());
             milStatus = false;
         }
-        log("isMILOn: " + String(milStatus), "ELM327Manager");
-        log("numCodesMIL: " + String(numCodes), "ELM327Manager");
+        log("isMILOn: " + String(milStatus), getName());
+        log("numCodesMIL: " + String(numCodes), getName());
 
         nextQuery();
     }
     else if (elm327Client.nb_rx_state != ELM_GETTING_MSG)
     {
-        log("Error getting isMILOn", "ELM327Manager");
+        log("Error getting isMILOn", getName());
         elm327Client.printError();
         /// Continue with next query if manager is not getting message
         nextQuery();
@@ -440,17 +501,17 @@ void ELM327Manager::getMILCodes()
 
     if (elm327Client.nb_rx_state == ELM_SUCCESS)
     {
-        log("Codes found: " + String(elm327Client.DTC_Response.codesFound), "ELM327Manager.codesFound");
+        log("Codes found: " + String(elm327Client.DTC_Response.codesFound), getName() + ".codesFound");
 
         for (int i = 0; i < elm327Client.DTC_Response.codesFound + 1; i++)
         {
-            log(elm327Client.DTC_Response.codes[i], "ELM327Manager.CODE_FOUND");
+            log(elm327Client.DTC_Response.codes[i], getName() + ".CODE_FOUND");
         }
         nextQuery();
     }
     else if (elm327Client.nb_rx_state != ELM_GETTING_MSG)
     {
-        log("Error getting isMILOn", "ELM327Manager");
+        log("Error getting isMILOn", getName());
         elm327Client.printError();
         /// Continue with next query if manager is not getting message
         nextQuery();
