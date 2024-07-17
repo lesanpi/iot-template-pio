@@ -87,13 +87,9 @@ public:
     {
         this->deviceFound = device;
         hasDeviceFound = true;
-        // log("Memory: " + ESP.getFreeHeap(), "BLEScannerManager.setDevice()");
-        // uint8_t address[6] = {0x1c, 0xA1, 0x35, 0x69, 0x8D, 0xC5};
-        // uint8_t address[6] = device->getAddress();
         if (isConnected())
             return;
 
-        // if (!bleSerial.connect(device->getAddress().getNative()))
         if (!bleSerial.connect(device->getAddress()))
         {
             log("🚨 Couldn't connect to OBD scanner - Phase 1", "BLEScannerManager.setDevice()");

@@ -25,6 +25,6 @@ private:
     BLEManager *bleManager;
     WiFiScannerManager *wifiScannerManager;
     BTScannerManager *bleScannerManager;
-    String currentScannerData = "";
+    // String currentScannerData = "";
 };
 #endif

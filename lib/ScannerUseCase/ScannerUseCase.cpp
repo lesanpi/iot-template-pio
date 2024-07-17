@@ -25,17 +25,18 @@ void ScannerUseCase::loop()
     {
         String data =
             elm327Manager->getJSON();
+        bleManager->updateScannerData(data);
 
-        if (data.compareTo(currentScannerData))
-        {
-            log("✅ Has Data updated: " + data, "ScannerUseCase.loop()");
-            currentScannerData = data;
-            bleManager->updateScannerData(data);
-        }
-        else
-        {
-            // log("❌ Data no updated", "ScannerUseCase.loop()");
-        }
+        // if (data.compareTo(currentScannerData))
+        // {
+        //     log("✅ Has Data updated: " + data, "ScannerUseCase.loop()");
+        //     currentScannerData = data;
+        //     bleManager->updateScannerData(data);
+        // }
+        // else
+        // {
+        //     // log("❌ Data no updated", "ScannerUseCase.loop()");
+        // }
     }
 
     bleScannerManager->loop();
@@ -49,16 +50,17 @@ void ScannerUseCase::loop()
     {
         String data =
             elm327BleManager->getJSON();
+        bleManager->updateScannerData(data);
 
-        if (data.compareTo(currentScannerData))
-        {
-            log("✅ Has Data updated: " + data, "ScannerUseCase.loop()");
-            currentScannerData = data;
-            bleManager->updateScannerData(data);
-        }
-        else
-        {
-            // log("❌ Data no updated", "ScannerUseCase.loop()");
-        }
+        // if (data.compareTo(currentScannerData))
+        // {
+        //     log("✅ Has Data updated: " + data, "ScannerUseCase.loop()");
+        //     currentScannerData = data;
+        //     bleManager->updateScannerData(data);
+        // }
+        // else
+        // {
+        //     // log("❌ Data no updated", "ScannerUseCase.loop()");
+        // }
     }
 }
