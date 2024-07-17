@@ -14,7 +14,7 @@ class ScannerUseCase
 {
     /* data */
 public:
-    ScannerUseCase(ELM327Manager *elm327Manager, ELM327Manager *elm327BleManager, BLEManager *bleManager, WiFiScannerManager *wifiScannerManager, BLEScannerManager *bleScannerManager);
+    ScannerUseCase(ELM327Manager *elm327Manager, ELM327Manager *elm327BleManager, BLEManager *bleManager, WiFiScannerManager *wifiScannerManager, BTScannerManager *bleScannerManager);
 
     void begin();
     void loop();
@@ -24,7 +24,7 @@ private:
     ELM327Manager *elm327BleManager;
     BLEManager *bleManager;
     WiFiScannerManager *wifiScannerManager;
-    BLEScannerManager *bleScannerManager;
+    BTScannerManager *bleScannerManager;
     String currentScannerData = "";
 };
 #endif

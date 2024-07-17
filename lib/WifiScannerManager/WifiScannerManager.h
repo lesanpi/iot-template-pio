@@ -26,7 +26,7 @@ public:
         unsigned long now = millis();
 
         // Check a minute has passed since the last run
-        if (now - lastConnectTime >= 10000)
+        if (now - lastConnectTime >= 1000 * 60)
         {
             // Actualiza el tiempo de la última ejecución
             lastConnectTime = now;

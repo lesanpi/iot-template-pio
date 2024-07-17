@@ -29,12 +29,12 @@
 //     }
 // };
 
-class BLEScannerManager
+class BTScannerManager
 {
 
 public:
     // Constructor de la clase
-    BLEScannerManager(const char *bleName, BluetoothSerial &bleSerial, int minRSSI);
+    BTScannerManager(const char *btName, BluetoothSerial &bleSerial, int minRSSI);
 
     void loop()
     {
@@ -42,7 +42,12 @@ public:
         unsigned long now = millis();
 
         // Check a minute has passed since the last run
-        if (now - lastConnectTime >= 10000)
+        // log("Waiting... " + String(now) + " last: " + String(lastConnectTime), "BLEScannerManager.loop()");
+
+        if (isConnected())
+            return;
+
+        if (now - lastConnectTime >= 30000)
         {
             // Actualiza el tiempo de la última ejecución
             lastConnectTime = now;
@@ -73,6 +78,35 @@ public:
         return bleSerial.connected();
     }
 
+    void setCallback(BTAdvertisedDeviceCb callback)
+    {
+        this->callback = callback;
+    }
+
+    void setDevice(BTAdvertisedDevice *device)
+    {
+        this->deviceFound = device;
+        hasDeviceFound = true;
+        // log("Memory: " + ESP.getFreeHeap(), "BLEScannerManager.setDevice()");
+        // uint8_t address[6] = {0x1c, 0xA1, 0x35, 0x69, 0x8D, 0xC5};
+        // uint8_t address[6] = device->getAddress();
+        if (isConnected())
+            return;
+
+        // if (!bleSerial.connect(device->getAddress().getNative()))
+        if (!bleSerial.connect(device->getAddress()))
+        {
+            log("🚨 Couldn't connect to OBD scanner - Phase 1", "BLEScannerManager.setDevice()");
+        }
+        else
+        {
+            log("✅ Connected to OBD scanner - Phase 1", "BLEScannerManager.setDevice()");
+        }
+        // bleSerial.connect(device->getAddress());
+    }
+
+    bool hasDeviceFound = false;
+
 private:
     /// @brief BLE Serial
     BluetoothSerial &bleSerial;
@@ -89,10 +123,15 @@ private:
     /// Last time of execution of `connect()`
     unsigned long lastConnectTime = 0;
 
-    // or ESP_SPP_SEC_ENCRYPT|ESP_SPP_SEC_AUTHENTICATE to request pincode confirmation
-    esp_spp_sec_t sec_mask = ESP_SPP_SEC_ENCRYPT;
+    // // or ESP_SPP_SEC_ENCRYPT|ESP_SPP_SEC_AUTHENTICATE to request pincode confirmation
+    // esp_spp_sec_t sec_mask = ESP_SPP_SEC_ENCRYPT;
 
-    // or ESP_SPP_ROLE_MASTER
-    esp_spp_role_t role = ESP_SPP_ROLE_MASTER;
+    // // or ESP_SPP_ROLE_MASTER
+    // esp_spp_role_t role = ESP_SPP_ROLE_MASTER;
+
+    /// Device Found
+    BTAdvertisedDevice *deviceFound;
+
+    BTAdvertisedDeviceCb callback;
 };
 #endif

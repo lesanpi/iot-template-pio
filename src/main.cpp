@@ -21,6 +21,9 @@
 #define GREEN_PIN 26
 #define BLUE_PIN 27
 
+#define EVENT_BIT_1 (1 << 0)
+#define EVENT_BIT_2 (1 << 1)
+
 /// BLE UUIDS
 /// @brief  Characteristic UUID
 const char *KILOMETERS_CHARACTERISTIC_UUID = "beb5483e-36e1-4688-b7f5-ea07361b26a8";
@@ -28,10 +31,8 @@ const char *KILOMETERS_CHARACTERISTIC_UUID = "beb5483e-36e1-4688-b7f5-ea07361b26
 const char *VEHICLE_CHARACTERISTIC_UUID = "beb5483e-36e1-4688-b7f5-ea07361b26a9";
 /// brief   Geolocation UUID
 const char *GEOLOCATION_CHARACTERISTIC_UUID = "beb5483e-36e1-4688-b7f5-ea07361b26b9";
-
 /// @brief OBD Scanner UUID
 const char *SCANNER_CHARACTERISTIC_UUID = "beb5483e-36e1-4688-b7f5-ea07361b26b8";
-
 /// @brief  Service UUID
 const char *SERVICE_UUID = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
 
@@ -42,11 +43,11 @@ MemoryManager *memoryManager;
 InputManager *inputManager;
 OutputManager *outputManager;
 WiFiScannerManager *wifiScannerManager;
-BLEScannerManager *bleScannerManager;
+BTScannerManager *btScannerManager;
 ELM327Manager *elm327Manager;
 ELM327Manager *elm327BLEManager;
 
-/// SSID List for OBDII
+// /// SSID List for OBDII
 SSIDList ssidList = {
     .ssids = {"WiFi_OBDII", "WIFI-OBDII"},
     .numSsids = 2};
@@ -60,47 +61,59 @@ ConfigurationUseCase *configurationUseCase;
 /// Connect and read OBD2 Scanner data and update the data over BLE
 ScannerUseCase *scannerUseCase;
 
-/// Client
+// /// Client
 WiFiClient client;
-/// BLE Client Serial
+// /// BLE Client Serial
 BluetoothSerial serialBT;
 
-int kilometers = 0;
+EventGroupHandle_t eventGroup;
+
+String deviceName = "DEMO Car 2";
 
 void setup()
 {
   Serial.begin(115200);
-  // Serial.begin(9600);
   while (!Serial.availableForWrite())
     ;
-  delay(2000);
-  // bool serialBegin = serialBT.begin("DEMO Lesanpi", true);
-  // log("serialBeigin " + serialBegin, "SETUP");
+  serialBT.begin(deviceName, true);
+  serialBT.setPin("1234");
+  serialBT.setTimeout(60000);
   log("🤖 Starting setup...", "SETUP");
-
-  // ...
 
   /// Managers
   inputManager = new InputManager(RESET_BUTTON_PIN, RESET_TIME_MAX);
-  bleManager = new BLEManager("DEMO Lesanpi", SERVICE_UUID, KILOMETERS_CHARACTERISTIC_UUID, VEHICLE_CHARACTERISTIC_UUID, GEOLOCATION_CHARACTERISTIC_UUID, SCANNER_CHARACTERISTIC_UUID);
+  bleManager = new BLEManager(deviceName.c_str(), SERVICE_UUID, KILOMETERS_CHARACTERISTIC_UUID, VEHICLE_CHARACTERISTIC_UUID, GEOLOCATION_CHARACTERISTIC_UUID, SCANNER_CHARACTERISTIC_UUID);
   gpsManager = new GPSManager(32, 33, false);
-  // gpsManager = new GPSManager(32, 33, true);
+  // // gpsManager = new GPSManager(32, 33, true);
   memoryManager = new MemoryManager(1024);
   outputManager = new OutputManager(RED_PIN, GREEN_PIN, BLUE_PIN);
+
   /// Options:
   ///  1. WiFi_OBDII
   ///  2. WIFI-OBDII
-
   wifiScannerManager = new WiFiScannerManager(ssidList, -55);
-
-  bleScannerManager = new BLEScannerManager("OBDII", serialBT, -60);
+  /// Bluetooth scanner manager
+  btScannerManager = new BTScannerManager("OBDII", serialBT, -60);
+  /// Callback on device found
+  BTAdvertisedDeviceCb callback = [](BTAdvertisedDevice *device)
+  {
+    log("🛜 Dispositivo scaneado:  " + String(device->getName().c_str()) + " " + device->getAddress().toString().c_str(), "BLEScannerManager.scanDevices()");
+    if (strcmp(device->getName().c_str(), "OBDII") == 0)
+    {
+      log("✅ Dispositivo encontrado!", "BLEScannerManager.scanDevices()");
+      btScannerManager->setDevice(device);
+    }
+  };
+  /// Set Callback
+  btScannerManager->setCallback(callback);
   elm327BLEManager = new ELM327Manager(client, serialBT, false, 10000, false, ELM_Manager_Type::ELM_BLE);
   elm327Manager = new ELM327Manager(client, serialBT, false, 10000, false, ELM_Manager_Type::ELM_WIFI);
 
   /// Use cases
   configurationUseCase = new ConfigurationUseCase(memoryManager, gpsManager, bleManager, inputManager, outputManager, elm327Manager);
   mileageMeterUseCase = new MileageMeterUseCase(memoryManager, gpsManager, bleManager, inputManager, outputManager);
-  scannerUseCase = new ScannerUseCase(elm327Manager, elm327BLEManager, bleManager, wifiScannerManager, bleScannerManager);
+  scannerUseCase = new ScannerUseCase(elm327Manager, elm327BLEManager, bleManager, wifiScannerManager, btScannerManager);
+
   /// Begin managers
   inputManager->setup();
   memoryManager->begin();
@@ -108,6 +121,7 @@ void setup()
   gpsManager->begin();
   outputManager->setup();
   wifiScannerManager->begin();
+  configurationUseCase->begin();
 
   WiFi.onEvent([](WiFiEvent_t event)
                {
@@ -118,9 +132,8 @@ void setup()
                  //         }
                },
                WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
-
-  /// Begin use cases
-  configurationUseCase->begin();
+  // uint8_t address[6] = {0x1c, 0xA1, 0x35, 0x69, 0x8D, 0xC5};
+  // serialBT.connect(address);
 }
 
 void loop()
@@ -128,9 +141,9 @@ void loop()
 
   // configurationUseCase->loop();
   // mileageMeterUseCase->loop();
-  // scannerUseCase->loop();
+  scannerUseCase->loop();
+  // btScannerManager->loop();
 
-  bleScannerManager->loop();
   // wifiScannerManager->loop();
   // if (wifiScannerManager->isConnected() && !elm327Manager->isConnected())
   // {
