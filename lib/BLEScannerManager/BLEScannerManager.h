@@ -101,6 +101,7 @@ public:
         else
         {
             log("✅ Connected to OBD scanner - Phase 1", "BLEScannerManager.setDevice()");
+            bleSerial.discoverAsyncStop();
         }
         // bleSerial.connect(device->getAddress());
     }
