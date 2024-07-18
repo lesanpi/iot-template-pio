@@ -45,9 +45,11 @@ public:
         // log("Waiting... " + String(now) + " last: " + String(lastConnectTime), "BLEScannerManager.loop()");
 
         if (isConnected())
+        {
             return;
+        }
 
-        if (now - lastConnectTime >= 30000)
+        if (now - lastConnectTime >= 10000)
         {
             // Actualiza el tiempo de la última ejecución
             lastConnectTime = now;
@@ -90,6 +92,10 @@ public:
         if (isConnected())
             return;
 
+        uint32_t free_heap = esp_get_free_heap_size();
+        Serial.print("Free Heap Memory: ");
+        Serial.println(free_heap);
+
         if (!bleSerial.connect(device->getAddress()))
         {
             log("🚨 Couldn't connect to OBD scanner - Phase 1", "BLEScannerManager.setDevice()");
@@ -97,9 +103,9 @@ public:
         else
         {
             log("✅ Connected to OBD scanner - Phase 1", "BLEScannerManager.setDevice()");
+            hasDeviceFound = true;
             bleSerial.discoverAsyncStop();
         }
-        // bleSerial.connect(device->getAddress());
     }
 
     bool hasDeviceFound = false;

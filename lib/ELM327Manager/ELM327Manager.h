@@ -89,7 +89,12 @@ public:
         // if (!connected)
         //     return;
         log("Disconnected from ELM327", getName() + ".disconnected()");
-        bleSerial.disconnect();
+        if (isBLEType())
+        {
+
+            bleSerial.disconnect();
+            log("✅ ELM327 disconnected correctly", getName() + ".disconnected()");
+        }
         hasData = false;
         connected = false;
         clientInitialized = false;
@@ -101,8 +106,8 @@ public:
         /// Timeout, reconnect
         if (isTimeOut())
         {
-            disconnected();
-            begin();
+            // disconnected();
+            // begin();
             return;
         }
 
@@ -114,7 +119,7 @@ public:
         // Time in milliseccond
         unsigned long now = millis();
         // Check a minute has passed since the last run
-        int timeToWait = isGettingMessage() ? 200 : 3000;
+        int timeToWait = isGettingMessage() ? 200 : 1000;
         // int timeToWait = 60000;
         if (now - lastDataExtractionTime >= timeToWait)
         {

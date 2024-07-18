@@ -25,7 +25,7 @@ void ELM327Manager::odometer()
         if (elm327Client.nb_rx_state == ELM_TIMEOUT)
         {
             disconnected();
-            begin();
+            // begin();
         }
     }
 }
@@ -177,7 +177,7 @@ void ELM327Manager::begin(unsigned long timeout)
             if (!clientInitialized)
             {
                 log("Init elm client failed", getName());
-                begin();
+                return;
             }
         }
         initializedElm327 = elm327Client.initializeELM((char)48, 10000);
@@ -230,7 +230,7 @@ void ELM327Manager::absBaroPressure()
         if (elm327Client.nb_rx_state == ELM_TIMEOUT)
         {
             disconnected();
-            begin();
+            // begin();
         }
     }
 }

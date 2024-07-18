@@ -1,10 +1,15 @@
 #include "ScannerUseCase.h"
 
-ScannerUseCase::ScannerUseCase(ELM327Manager *elm327Manager, ELM327Manager *elm327BleManager, BLEManager *bleManager, WiFiScannerManager *wifiScannerManager, BTScannerManager *bleScannerManager)
+ScannerUseCase::ScannerUseCase(
+    ELM327Manager *elm327Manager,
+    ELM327Manager *elm327BleManager,
+    BLEManager *bleManager,
+    WiFiScannerManager *wifiScannerManager,
+    BTScannerManager *bleScannerManager)
 {
-    this->elm327Manager = elm327Manager;
+    // this->elm327Manager = elm327Manager;
+    // this->wifiScannerManager = wifiScannerManager;
     this->elm327BleManager = elm327BleManager;
-    this->wifiScannerManager = wifiScannerManager;
     this->bleScannerManager = bleScannerManager;
     this->bleManager = bleManager;
 }
@@ -15,30 +20,42 @@ void ScannerUseCase::begin()
 
 void ScannerUseCase::loop()
 {
-    wifiScannerManager->loop();
-    if (wifiScannerManager->isConnected() && !elm327Manager->isConnected())
-    {
-        elm327Manager->begin();
-    }
-    elm327Manager->loop();
-    if (elm327Manager->hasDataAvailable())
-    {
-        String data =
-            elm327Manager->getJSON();
-        bleManager->updateScannerData(data);
+    unsigned long now = millis();
 
-        // if (data.compareTo(currentScannerData))
-        // {
-        //     log("✅ Has Data updated: " + data, "ScannerUseCase.loop()");
-        //     currentScannerData = data;
-        //     bleManager->updateScannerData(data);
-        // }
-        // else
-        // {
-        //     // log("❌ Data no updated", "ScannerUseCase.loop()");
-        // }
-    }
+    // if (!bleScannerManager->isConnected())
+    //     wifiScannerManager->loop();
+    // if (wifiScannerManager->isConnected() && !elm327Manager->isConnected())
+    // {
+    //     elm327Manager->begin();
+    // }
+    // elm327Manager->loop();
 
+    // if (elm327Manager->hasDataAvailable())
+    // {
+    //     String data =
+    //         elm327Manager->getJSON();
+    //     if (now - lastUpdateTime > 1000 * 60)
+    //     {
+    //         lastUpdateTime = now;
+    //         bleManager->updateScannerData(data);
+    //     }
+    //     // if (data.compareTo(currentScannerData))
+    //     // {
+    //     //     log("✅ Has Data updated: " + data, "ScannerUseCase.loop()");
+    //     //     currentScannerData = data;
+    //     //     bleManager->updateScannerData(data);
+    //     // }
+    //     // else
+    //     // {
+    //     //     // log("❌ Data no updated", "ScannerUseCase.loop()");
+    //     // }
+
+    //     /// Optimize memory
+    //     data.clear();
+    // }
+
+    /// BLE Scanner
+    // if (!wifiScannerManager->isConnected())
     bleScannerManager->loop();
     if (bleScannerManager->isConnected() && !elm327BleManager->isConnected())
     {
@@ -51,6 +68,11 @@ void ScannerUseCase::loop()
         String data =
             elm327BleManager->getJSON();
         bleManager->updateScannerData(data);
+        if (now - lastUpdateTime > 1000 * 60)
+        {
+            lastUpdateTime = now;
+            bleManager->updateScannerData(data);
+        }
 
         // if (data.compareTo(currentScannerData))
         // {
@@ -62,5 +84,8 @@ void ScannerUseCase::loop()
         // {
         //     // log("❌ Data no updated", "ScannerUseCase.loop()");
         // }
+
+        /// Optimize memory
+        data.clear();
     }
 }

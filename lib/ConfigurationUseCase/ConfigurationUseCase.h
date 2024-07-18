@@ -11,7 +11,7 @@
 class ConfigurationUseCase : public BLECharacteristicCallbacks
 {
 public:
-    ConfigurationUseCase(MemoryManager *memoryManager, GPSManager *gpsManager, BLEManager *bleManager, InputManager *inputManager, OutputManager *outputManager, ELM327Manager *elm327Manager);
+    ConfigurationUseCase(MemoryManager *memoryManager, GPSManager *gpsManager, BLEManager *bleManager, InputManager *inputManager, OutputManager *outputManager, ELM327Manager *elm327Manager, ELM327Manager *elm327BtManager);
     void begin();
     void loop();
     bool isConfigured();
@@ -46,6 +46,7 @@ private:
     InputManager *inputManager;
     OutputManager *outputManager;
     ELM327Manager *elm327Manager;
+    ELM327Manager *elm327BtManager;
 
     bool configured = false;
 };

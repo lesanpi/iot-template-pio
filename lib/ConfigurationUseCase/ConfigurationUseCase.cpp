@@ -2,7 +2,7 @@
 #include "Development.h"
 #include "InputManager.h"
 
-ConfigurationUseCase::ConfigurationUseCase(MemoryManager *memoryManager, GPSManager *gpsManager, BLEManager *bleManager, InputManager *inputManager, OutputManager *outputManager, ELM327Manager *elm327Manager)
+ConfigurationUseCase::ConfigurationUseCase(MemoryManager *memoryManager, GPSManager *gpsManager, BLEManager *bleManager, InputManager *inputManager, OutputManager *outputManager, ELM327Manager *elm327Manager, ELM327Manager *elm327BtManager)
 {
     this->memoryManager = memoryManager;
     this->gpsManager = gpsManager;
@@ -10,6 +10,7 @@ ConfigurationUseCase::ConfigurationUseCase(MemoryManager *memoryManager, GPSMana
     this->inputManager = inputManager;
     this->outputManager = outputManager;
     this->elm327Manager = elm327Manager;
+    this->elm327BtManager = elm327BtManager;
 }
 
 bool ConfigurationUseCase::isConfigured()
@@ -40,6 +41,7 @@ void ConfigurationUseCase::begin()
     bleManager->setVehicleCharacteristicCallback(this);
     log("Vehicle characteristic callback setted", "ConfigurationUseCase.begin()");
     elm327Manager->setVehicleId(memoryManager->getVehicleId());
+    elm327BtManager->setVehicleId(memoryManager->getVehicleId());
     bleManager->updateVehicleId(memoryManager->getVehicleId());
     bleManager->updateKilometers(memoryManager->getTotalDistanceTraveled());
 }

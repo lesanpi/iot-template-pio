@@ -97,11 +97,10 @@ void setup()
   /// Callback on device found
   BTAdvertisedDeviceCb callback = [](BTAdvertisedDevice *device)
   {
-    log("🛜 Dispositivo scaneado:  " + String(device->getName().c_str()) + " " + device->getAddress().toString().c_str(), "BLEScannerManager.scanDevices()");
+    log("🛜 Dispositivo scaneado:  " + String(device->getName().c_str()) + " " + device->getAddress().toString().c_str(), "BLEScannerManager.callback()");
     if (strcmp(device->getName().c_str(), "OBDII") == 0)
     {
-      log("✅ Dispositivo encontrado!", "BLEScannerManager.scanDevices()");
-      btScannerManager->setDevice(device);
+      log("✅ Dispositivo encontrado!", "BLEScannerManager.callback()");
     }
   };
   /// Set Callback
@@ -110,9 +109,20 @@ void setup()
   elm327Manager = new ELM327Manager(client, serialBT, false, 10000, false, ELM_Manager_Type::ELM_WIFI);
 
   /// Use cases
-  configurationUseCase = new ConfigurationUseCase(memoryManager, gpsManager, bleManager, inputManager, outputManager, elm327Manager);
+  configurationUseCase = new ConfigurationUseCase(memoryManager,
+                                                  gpsManager,
+                                                  bleManager,
+                                                  inputManager,
+                                                  outputManager,
+                                                  elm327Manager,
+                                                  elm327BLEManager);
   mileageMeterUseCase = new MileageMeterUseCase(memoryManager, gpsManager, bleManager, inputManager, outputManager);
-  scannerUseCase = new ScannerUseCase(elm327Manager, elm327BLEManager, bleManager, wifiScannerManager, btScannerManager);
+  scannerUseCase = new ScannerUseCase(
+      elm327Manager,
+      elm327BLEManager,
+      bleManager,
+      wifiScannerManager,
+      btScannerManager);
 
   /// Begin managers
   inputManager->setup();
@@ -132,8 +142,6 @@ void setup()
                  //         }
                },
                WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
-  // uint8_t address[6] = {0x1c, 0xA1, 0x35, 0x69, 0x8D, 0xC5};
-  // serialBT.connect(address);
 }
 
 void loop()
