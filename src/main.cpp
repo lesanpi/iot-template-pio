@@ -70,6 +70,16 @@ EventGroupHandle_t eventGroup;
 
 String deviceName = "DEMO Car 2";
 
+/// Callback on device found
+BTAdvertisedDeviceCb callback = [](BTAdvertisedDevice *device)
+{
+  log("🛜 Dispositivo scaneado:  " + String(device->getName().c_str()) + " " + device->getAddress().toString().c_str(), "BLEScannerManager.callback()");
+  if (strcmp(device->getName().c_str(), "OBDII") == 0)
+  {
+    log("✅ Dispositivo encontrado!", "BLEScannerManager.callback()");
+  }
+};
+
 void setup()
 {
   Serial.begin(115200);
@@ -94,15 +104,6 @@ void setup()
   wifiScannerManager = new WiFiScannerManager(ssidList, -55);
   /// Bluetooth scanner manager
   btScannerManager = new BTScannerManager("OBDII", serialBT, -60);
-  /// Callback on device found
-  BTAdvertisedDeviceCb callback = [](BTAdvertisedDevice *device)
-  {
-    log("🛜 Dispositivo scaneado:  " + String(device->getName().c_str()) + " " + device->getAddress().toString().c_str(), "BLEScannerManager.callback()");
-    if (strcmp(device->getName().c_str(), "OBDII") == 0)
-    {
-      log("✅ Dispositivo encontrado!", "BLEScannerManager.callback()");
-    }
-  };
   /// Set Callback
   btScannerManager->setCallback(callback);
   elm327BLEManager = new ELM327Manager(client, serialBT, false, 10000, false, ELM_Manager_Type::ELM_BLE);
@@ -147,8 +148,8 @@ void setup()
 void loop()
 {
 
-  // configurationUseCase->loop();
-  // mileageMeterUseCase->loop();
+  configurationUseCase->loop();
+  mileageMeterUseCase->loop();
   scannerUseCase->loop();
   // btScannerManager->loop();
 

@@ -106,7 +106,7 @@ public:
         /// Timeout, reconnect
         if (isTimeOut())
         {
-            // disconnected();
+            disconnected();
             // begin();
             return;
         }
