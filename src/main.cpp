@@ -68,7 +68,7 @@ BluetoothSerial serialBT;
 
 EventGroupHandle_t eventGroup;
 
-String deviceName = "DEMO Car 2";
+String deviceName = "DEMO Lesanpi";
 
 /// Callback on device found
 BTAdvertisedDeviceCb callback = [](BTAdvertisedDevice *device)
@@ -138,10 +138,7 @@ void setup()
                {
                  log("Event received " + String(event), "WiFi.onEvent");
                  wifiScannerManager->disconnected();
-                 elm327Manager->disconnected();
-                 // if (event == WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_DISCONNECTED) {
-                 //         }
-               },
+                 elm327Manager->disconnected(); },
                WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
 }
 
@@ -151,116 +148,4 @@ void loop()
   configurationUseCase->loop();
   mileageMeterUseCase->loop();
   scannerUseCase->loop();
-  // btScannerManager->loop();
-
-  // wifiScannerManager->loop();
-  // if (wifiScannerManager->isConnected() && !elm327Manager->isConnected())
-  // {
-  //   elm327Manager->begin();
-  // }
-  // elm327Manager->loop();
-
-  // kilometers++;
-  // log("🔄 Kilometers changed... " + String(kilometers) + " km", "LOOP");
-  // bleManager->updateKilometers(kilometers);
-  // gpsManager->loop();
-  // delay(5000);
-
-  // ...
 }
-
-// #include "BluetoothSerial.h"
-// #include "ELMduino.h"
-
-// BluetoothSerial SerialBT;
-// #define ELM_PORT SerialBT
-// #define DEBUG_PORT Serial
-// #if !defined(CONFIG_BT_ENABLED) || !defined(CONFIG_BLUEDROID_ENABLED)
-// #error Bluetooth is not enabled! Please run `make menuconfig` to and enable it
-// #endif
-
-// ELM327 myELM327;
-
-// typedef enum
-// {
-//   ENG_RPM,
-//   SPEED
-// } obd_pid_states;
-// obd_pid_states obd_state = ENG_RPM;
-
-// float rpm = 0;
-// float mph = 0;
-
-// // 1c:a1:35:69:8d:c5
-// uint8_t address[6] = {0x1c, 0xA1, 0x35, 0x69, 0x8D, 0xC5};
-
-// void setup()
-// {
-//   DEBUG_PORT.begin(115200);
-//   // SerialBT.setPin("1234");
-//   ELM_PORT.begin("ArduHUD", true);
-//   ELM_PORT.setPin("1234");
-//   ELM_PORT.setTimeout(60000);
-//   DEBUG_PORT.println("Starting Phase 1");
-
-//   // if (!ELM_PORT.connect("OBDII"))
-//   if (!ELM_PORT.connect(address))
-//   {
-//     DEBUG_PORT.println("Couldn't connect to OBD scanner - Phase 1");
-//     while (1)
-//       ;
-//   }
-
-//   if (!myELM327.begin(ELM_PORT, false, 2000))
-//   {
-//     DEBUG_PORT.println("Couldn't connect to OBD scanner - Phase 2");
-//     while (1)
-//       ;
-//   }
-
-//   DEBUG_PORT.println("Connected to ELM327");
-// }
-
-// void loop()
-// {
-//   switch (obd_state)
-//   {
-//   case ENG_RPM:
-//   {
-//     rpm = myELM327.rpm();
-
-//     if (myELM327.nb_rx_state == ELM_SUCCESS)
-//     {
-//       DEBUG_PORT.print("rpm: ");
-//       DEBUG_PORT.println(rpm);
-//       obd_state = SPEED;
-//     }
-//     else if (myELM327.nb_rx_state != ELM_GETTING_MSG)
-//     {
-//       myELM327.printError();
-//       obd_state = SPEED;
-//     }
-
-//     break;
-//   }
-
-//   case SPEED:
-//   {
-//     mph = myELM327.mph();
-
-//     if (myELM327.nb_rx_state == ELM_SUCCESS)
-//     {
-//       DEBUG_PORT.print("mph: ");
-//       DEBUG_PORT.println(mph);
-//       obd_state = ENG_RPM;
-//     }
-//     else if (myELM327.nb_rx_state != ELM_GETTING_MSG)
-//     {
-//       myELM327.printError();
-//       obd_state = ENG_RPM;
-//     }
-
-//     break;
-//   }
-//   }
-// }
