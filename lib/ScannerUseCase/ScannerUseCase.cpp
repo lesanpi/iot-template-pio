@@ -24,9 +24,11 @@ void ScannerUseCase::loop()
 
     if (!bleScannerManager->isConnected())
         wifiScannerManager->loop();
-    if (wifiScannerManager->isConnected() && !elm327Manager->isConnected())
+    bool canConnectObd2 = now - lastConnectionObd2 > 1000 * 60 * 5;
+    if (wifiScannerManager->isConnected() && !elm327Manager->isConnected() && canConnectObd2)
     {
         elm327Manager->begin();
+        lastConnectionObd2 = now;
     }
     elm327Manager->loop();
 
@@ -39,6 +41,8 @@ void ScannerUseCase::loop()
             lastUpdateTime = now;
             bleManager->updateScannerData(data);
         }
+        elm327Manager->disconnected();
+        wifiScannerManager->disconnected();
         // if (data.compareTo(currentScannerData))
         // {
         //     log("✅ Has Data updated: " + data, "ScannerUseCase.loop()");

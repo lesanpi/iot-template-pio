@@ -35,6 +35,11 @@ public:
         return data;
     }
 
+    bool isConnectedToGps()
+    {
+        return connected && this->satellites > 0;
+    }
+
 private:
     void calculate();
 
@@ -51,6 +56,8 @@ private:
     int8_t rxPin;
     int8_t txPin;
     bool updated = false;
+    /// @brief Connected to GPS
+    bool connected = false;
     // The TinyGPS++ object
     TinyGPSPlus gps;
     /// Weights
@@ -71,6 +78,15 @@ private:
     void calculateSatellites();
     void calculateHdop();
     void calculateSpeed();
+
+    void changeConnected(bool connected)
+    {
+        if (this->connected != connected)
+        {
+            log("Connected changed to " + connected, "GPSManager.changeConnected()");
+        }
+        this->connected = connected;
+    }
 
     bool isMoving()
     {

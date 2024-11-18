@@ -22,6 +22,8 @@ private:
     /// @brief Last location known
     GeolocationData lastLocation;
 
+    bool lastGpsConnectionState = false;
+
     /// @brief Determinates if the geolocation was updated
     /// @return true if the location was updated
     bool geolocationIsUpdated()

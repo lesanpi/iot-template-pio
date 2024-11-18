@@ -173,14 +173,14 @@ void ELM327Manager::begin(unsigned long timeout)
         }
         if (connected && !clientInitialized)
         {
-            clientInitialized = elm327Client.begin(bleSerial, false, 10000);
+            clientInitialized = elm327Client.begin(bleSerial, false, timeout);
             if (!clientInitialized)
             {
                 log("Init elm client failed", getName());
                 return;
             }
         }
-        initializedElm327 = elm327Client.initializeELM((char)48, 10000);
+        initializedElm327 = elm327Client.initializeELM((char)48, timeout);
         log("Connection finalized correctly. Result: " + String(clientInitialized) + " Result init: " + String(initializedElm327), getName());
         return;
     }
@@ -198,7 +198,7 @@ void ELM327Manager::begin(unsigned long timeout)
 
     if (connected && !clientInitialized)
     {
-        clientInitialized = elm327Client.begin(client, false, 10000);
+        clientInitialized = elm327Client.begin(client, false, timeout);
         if (!clientInitialized)
         {
             log("Init elm client failed", getName());
@@ -207,7 +207,7 @@ void ELM327Manager::begin(unsigned long timeout)
             // begin();
         }
     }
-    initializedElm327 = elm327Client.initializeELM((char)48, 10000);
+    initializedElm327 = elm327Client.initializeELM((char)48, int(timeout));
     log("Connection finalized correctly. Result: " + String(clientInitialized) + " Result init: " + String(initializedElm327), getName());
 }
 

@@ -63,7 +63,7 @@ public:
     }
 
     // Initialize ELM327 communication
-    void begin(unsigned long timeout = 10000);
+    void begin(unsigned long timeout = 2000);
 
     bool isConnected()
     {
@@ -119,9 +119,9 @@ public:
         // Time in milliseccond
         unsigned long now = millis();
         // Check a minute has passed since the last run
-        int timeToWait = isGettingMessage() ? 200 : 1000;
+        int timeToWaitMs = isGettingMessage() ? 200 : 500;
         // int timeToWait = 60000;
-        if (now - lastDataExtractionTime >= timeToWait)
+        if (now - lastDataExtractionTime >= timeToWaitMs)
         {
 
             if (!isGettingMessage())
@@ -307,7 +307,7 @@ private:
     bool initializedElm327 = false;
 
     /// @brief Timeout
-    unsigned long timeout;
+    unsigned long timeout = 2000;
 
     /// @brief Last time execution of data scrapping
     unsigned long lastDataExtractionTime = 0;

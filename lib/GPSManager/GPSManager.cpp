@@ -130,6 +130,7 @@ void GPSManager::calculate()
     {
         double lat = gps.location.lat();
         double lon = gps.location.lng();
+        changeConnected(true);
 
         /// The following code is according your project
 
@@ -173,6 +174,10 @@ void GPSManager::calculate()
             this->updated = true;
             log("✅ Coordinates saved: " + String(lat, 6) + ", " + String(lon, 6), "GPSManager.calculate()");
         }
+    }
+    else
+    {
+        changeConnected(false);
     }
 }
 

@@ -13,10 +13,11 @@ class MyServerCallbacks : public BLEServerCallbacks
     }
 };
 
-BLEManager::BLEManager(std::__cxx11::string deviceName, const char *serviceUUID, const char *kilometersUUID, const char *vehicleUUID, const char *geolocationUUID, const char *scannerDataUUID)
+BLEManager::BLEManager(std::__cxx11::string deviceName, const char *serviceUUID, const char *kilometersUUID, const char *hasGpsConnectionUUID, const char *vehicleUUID, const char *geolocationUUID, const char *scannerDataUUID)
 {
     this->serviceUUID = serviceUUID;
     this->kilometersCharacteristicUUID = kilometersUUID;
+    this->hasGpsConnectionCharacteristicUUID = hasGpsConnectionUUID;
     this->vehicleCharacteristicUUID = vehicleUUID;
     this->geolocationCharacteristicUUID = geolocationUUID;
     this->scannerDataCharacteristicUUID = scannerDataUUID;
@@ -29,6 +30,7 @@ BLEManager::BLEManager(std::__cxx11::string deviceName, const char *serviceUUID,
 
     // Create and add characteristic
     kilometersCharacteristic = pService->createCharacteristic(this->kilometersCharacteristicUUID, BLECharacteristic::PROPERTY_READ);
+    hasGPSConnectionCharacteristic = pService->createCharacteristic(this->hasGpsConnectionCharacteristicUUID, BLECharacteristic::PROPERTY_READ);
     geolocationCharacteristic = pService->createCharacteristic(this->geolocationCharacteristicUUID, BLECharacteristic::PROPERTY_READ);
     vehicleCharacteristic = pService->createCharacteristic(this->vehicleCharacteristicUUID, BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_WRITE);
     scannerDataCharacteristic = pService->createCharacteristic(this->scannerDataCharacteristicUUID, BLECharacteristic::PROPERTY_READ);
@@ -62,6 +64,13 @@ void BLEManager::updateKilometers(int kilometers)
     kilometersCharacteristic->setValue(kilometers);
     kilometersCharacteristic->notify();
 }
+void BLEManager::updateHasGpsConnection(int connected)
+{
+    log("Has gps connection: " + String(connected), "BLEManager.updateHasGpsConnection");
+    hasGPSConnectionCharacteristic->setValue(connected);
+    hasGPSConnectionCharacteristic->notify();
+}
+
 void BLEManager::updateVehicleId(String id)
 {
     vehicleCharacteristic->setValue(id.c_str());

@@ -31,6 +31,7 @@ private:
     WiFiScannerManager *wifiScannerManager;
     BTScannerManager *bleScannerManager;
     unsigned long lastUpdateTime = 0;
+    unsigned long lastConnectionObd2 = 0;
     // String currentScannerData = "";
 };
 #endif

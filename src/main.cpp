@@ -27,6 +27,8 @@
 /// BLE UUIDS
 /// @brief  Characteristic UUID
 const char *KILOMETERS_CHARACTERISTIC_UUID = "beb5483e-36e1-4688-b7f5-ea07361b26a8";
+/// @brief  HAS GPS CONNECTION Characteristic UUID
+const char *HAS_GPS_CONNECTION_CHARACTERISTIC_UUID = "beb5483e-36e1-4688-b7f5-ea07361b26c8";
 /// brief   Vehicle UUID
 const char *VEHICLE_CHARACTERISTIC_UUID = "beb5483e-36e1-4688-b7f5-ea07361b26a9";
 /// brief   Geolocation UUID
@@ -92,7 +94,13 @@ void setup()
 
   /// Managers
   inputManager = new InputManager(RESET_BUTTON_PIN, RESET_TIME_MAX);
-  bleManager = new BLEManager(deviceName.c_str(), SERVICE_UUID, KILOMETERS_CHARACTERISTIC_UUID, VEHICLE_CHARACTERISTIC_UUID, GEOLOCATION_CHARACTERISTIC_UUID, SCANNER_CHARACTERISTIC_UUID);
+  bleManager = new BLEManager(deviceName.c_str(),
+                              SERVICE_UUID,
+                              KILOMETERS_CHARACTERISTIC_UUID,
+                              HAS_GPS_CONNECTION_CHARACTERISTIC_UUID,
+                              VEHICLE_CHARACTERISTIC_UUID,
+                              GEOLOCATION_CHARACTERISTIC_UUID,
+                              SCANNER_CHARACTERISTIC_UUID);
   gpsManager = new GPSManager(32, 33, false);
   // // gpsManager = new GPSManager(32, 33, true);
   memoryManager = new MemoryManager(1024);

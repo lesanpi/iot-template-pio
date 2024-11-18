@@ -11,6 +11,7 @@ MileageMeterUseCase::MileageMeterUseCase(MemoryManager *memoryManager, GPSManage
     this->bleManager = bleManager;
     this->inputManager = inputManager;
     this->outputManager = outputManager;
+    bleManager->updateHasGpsConnection(int(lastGpsConnectionState));
 }
 
 void MileageMeterUseCase::loop()
@@ -20,6 +21,12 @@ void MileageMeterUseCase::loop()
     /// Memory distance traveled
     double currentTotalDistanceTraveled = memoryManager->getTotalDistanceTraveled();
     // log("🚗🔄 Distance traveled in progress... " + String(currentTotalDistanceTraveled) + " km", "MileageMeterUseCase.loop()");
+    bool currentGpsConnectionState = gpsManager->isConnectedToGps();
+    if (lastGpsConnectionState != currentGpsConnectionState)
+    {
+        lastGpsConnectionState = currentGpsConnectionState;
+        bleManager->updateHasGpsConnection(int(lastGpsConnectionState));
+    }
 
     if (isConfigured)
     {
@@ -31,6 +38,7 @@ void MileageMeterUseCase::loop()
         }
         gpsManager->loop();
     }
+
     if (geolocationIsUpdated())
     {
         log("🚗 Geolocation was updated", "MileageMeterUseCase.loop()");
